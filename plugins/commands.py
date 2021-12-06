@@ -263,6 +263,5 @@ async def upstream_repo(bot, message):
     os.system("git pull")
     time.sleep(10)
     os.execl(sys.executable, sys.executable, *sys.argv)
-    time.sleep(5)
     await msg.delete()
     await message.delete()
