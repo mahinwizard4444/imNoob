@@ -259,6 +259,7 @@ async def delete_all_index_confirm(bot, message):
 
 @Client.on_message(filters.command('restart') & filters.user(ADMINS))
 async def upstream_repo(bot, message):
+    await bot.answer("Your Bot 🤖 Is Updating & Restarting...")
     os.system("git pull")
     time.sleep(10)
     os.execl(sys.executable, sys.executable, *sys.argv)
