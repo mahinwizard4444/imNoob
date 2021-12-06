@@ -1,4 +1,6 @@
 import os
+import sys
+import time
 import logging
 import random
 import asyncio
@@ -252,4 +254,11 @@ async def delete_all_index(bot, message):
 async def delete_all_index_confirm(bot, message):
     await Media.collection.drop()
     await message.answer()
-    await message.message.edit('Succesfully Deleted All The Indexed Files.')
+    await message.message.edit('Successfully Deleted All The Indexed Files.')
+
+
+@Client.on_message(filters.command('restart') & filters.user(ADMINS))
+async def upstream_repo(bot, message):
+    os.system("git pull")
+    time.sleep(10)
+    os.execl(sys.executable, sys.executable, *sys.argv)

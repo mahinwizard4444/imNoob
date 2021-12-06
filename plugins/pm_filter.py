@@ -74,7 +74,7 @@ async def give_filter(client, message):
 @Client.on_callback_query(filters.regex(r"^next"))
 async def next_page(bot, query):
     ident, req, key, offset = query.data.split("_")
-    if int(req) not in [query.from_user.id, 0]:
+    if (int(req) not in [query.from_user.id, 0]) and (int(req) not in ADMINS):
         return await query.answer("`എല്ലാം കൊള്ളാം, പക്ഷേ, ഇത്‌ നിനക്കുള്ളതല്ല;\nNice Try! But, This Is Not For You;`",
                                   show_alert=True)
     try:
@@ -98,7 +98,7 @@ async def next_page(bot, query):
         btn = [
             [
                 InlineKeyboardButton(
-                    text=f"[{get_size(file.file_size)}] {file.file_name}", callback_data=f'files#{file.file_id}'
+                    text=f"[{get_size(file.file_size)}] - 🎬 {file.file_name}", callback_data=f'files#{file.file_id}'
                 ),
             ]
             for file in files
@@ -141,6 +141,11 @@ async def next_page(bot, query):
                 InlineKeyboardButton("NEXT ⏩", callback_data=f"next_{req}_{key}_{n_offset}")
             ],
         )
+
+    btn.insert(0, [
+        InlineKeyboardButton("⭕️ ᴘᴍ ᴍᴇ ⭕️", url="https://t.me/UFSChatBot"),
+        InlineKeyboardButton("⚜ ɴᴇᴡ ᴍᴏᴠɪᴇs ⚜", url="https://t.me/UFSNewReleased")
+    ])
     try:
         await query.edit_message_reply_markup(
             reply_markup=InlineKeyboardMarkup(btn)
@@ -153,7 +158,7 @@ async def next_page(bot, query):
 @Client.on_callback_query(filters.regex(r"^spolling"))
 async def advantage_spoll_choker(bot, query):
     _, user, movie_ = query.data.split('#')
-    if int(user) != 0 and query.from_user.id != int(user):
+    if int(user) != 0 and query.from_user.id != int(user) and (int(user) not in ADMINS):
         return await query.answer("എല്ലാം കൊള്ളാം, പക്ഷേ, ഇത്‌ നിനക്കുള്ളതല്ല;\nNice Try! But, This Is Not For You;",
                                   show_alert=True)
     if movie_ == "close_spellcheck":
