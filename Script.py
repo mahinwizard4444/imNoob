@@ -21,7 +21,7 @@ class script(object):
 - Filter is the feature were users can set automated replies for a particular keyword and EvaMaria will respond whenever a keyword is found the message
 
 <b>NOTE:</b>
-1. eva maria should have admin privillage.
+1. eva maria should have admin privilege.
 2. only admins can add filters in a chat.
 3. alert buttons have a limit of 64 characters.
 
@@ -70,7 +70,7 @@ class script(object):
 these are the extra features of Eva Maria
 
 <b>Commands and Usage:</b>
-• /id - <code>get id of a specifed user.</code>
+• /id - <code>get id of a specified user.</code>
 • /info  - <code>get information about a user.</code>
 • /imdb  - <code>get the film information from IMDb source.</code>
 • /search  - <code>get the film information from various sources.</code>"""
@@ -80,7 +80,7 @@ these are the extra features of Eva Maria
 This module only works for my admins
 
 <b>Commands and Usage:</b>
-• /logs - <code>to get the rescent errors</code>
+• /logs - <code>to get the recent errors</code>
 • /stats - <code>to get status of files in db.</code>
 • /delete - <code>to delete a specific file from db.</code>
 • /users - <code>to get list of my users and ids.</code>
