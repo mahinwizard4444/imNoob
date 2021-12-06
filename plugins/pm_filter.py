@@ -691,7 +691,7 @@ async def auto_filter(client, msg, spoll=False):
         )
 
     btn.insert(0, [
-        InlineKeyboardButton("⭕️ ᴄᴏɴᴛᴀᴄᴛ ᴍᴇ ⭕️", url="https://t.me/UFSChatBot"),
+        InlineKeyboardButton("⭕️ ᴘᴍ ᴍᴇ ⭕️", url="https://t.me/UFSChatBot"),
         InlineKeyboardButton("⚜ ɴᴇᴡ ᴍᴏᴠɪᴇs ⚜", url="https://t.me/UFSNewReleased")
     ])
     imdb = await get_poster(search, file=(files[0]).file_name) if IMDB else None

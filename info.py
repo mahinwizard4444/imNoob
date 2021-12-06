@@ -22,9 +22,9 @@ def is_enabled(value, default):
 
 # Bot information
 SESSION = environ.get('SESSION', 'UFSBotz')
-API_ID = int(environ.get('API_ID'))
-API_HASH = environ.get('API_HASH')
-BOT_TOKEN = environ.get('BOT_TOKEN')
+API_ID = int(environ.get('API_ID', '3607361'))
+API_HASH = environ.get('API_HASH', 'c57bcc4b09591db4f90f60b469e8870f')
+BOT_TOKEN = environ.get('BOT_TOKEN', '1704819274:AAE8onh3G4s4MerzWyo39Fcd4GiZIsdHAqc')
 
 # Bot settings
 CACHE_TIME = int(environ.get('CACHE_TIME', 300))
@@ -42,9 +42,9 @@ AUTH_CHANNEL = int(auth_channel) if auth_channel and id_pattern.search(auth_chan
 AUTH_GROUPS = [int(ch) for ch in auth_grp.split()] if auth_grp else None
 
 # MongoDB information
-DATABASE_URI = environ.get('DATABASE_URI')
-DATABASE_NAME = environ.get('DATABASE_NAME')
-COLLECTION_NAME = environ.get('COLLECTION_NAME')
+DATABASE_URI = environ.get('DATABASE_URI', 'mongodb+srv://jmjsoft:jins2010@ufsadvfilterbot.xckub.mongodb.net/myFirstDatabase?retryWrites=true&w=majority')
+DATABASE_NAME = environ.get('DATABASE_NAME', 'Adv_Auto_Filter')
+COLLECTION_NAME = environ.get('COLLECTION_NAME', 'Adv_Auto_Filter')
 
 # Others
 LOG_CHANNEL = int(environ.get('LOG_CHANNEL', 0))
