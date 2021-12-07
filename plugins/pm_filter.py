@@ -649,7 +649,7 @@ async def auto_filter(client, msg, spoll=False):
             files, offset, total_results = await get_search_results(search.lower(), offset=0, filter=True)
             if not files:
                 if SPELL_CHECK_REPLY:
-                    return await advantage_spell_chok(msg)
+                    return await advantage_spell_chok(client, msg)
                 else:
                     return
         else:
@@ -768,7 +768,7 @@ async def auto_filter(client, msg, spoll=False):
         await msg.message.delete()
 
 
-async def advantage_spell_chok(msg):
+async def advantage_spell_chok(client, msg):
     query = re.sub(
         r"\b(pl(i|e)*?(s|z+|ease|se|ese|(e+)s(e)?)|((send|snd|giv(e)?|gib)(\sme)?)|movie(s)?|new|latest|br((o|u)h?)*|^h(e|a)?(l)*(o)*|mal(ayalam)?|t(h)?amil|file|that|find|und(o)*|kit(t(i|y)?)?o(w)?|thar(u)?(o)*w?|kittum(o)*|aya(k)*(um(o)*)?|full\smovie|any(one)|with\ssubtitle(s)?)",
         "", msg.text, flags=re.IGNORECASE)  # plis contribute some common words
@@ -777,9 +777,20 @@ async def advantage_spell_chok(msg):
     g_s += await search_gagala(msg.text)
     gs_parsed = []
     if not g_s:
-        k = await msg.reply("I couldn't find any movie in that name.")
-        await asyncio.sleep(8)
-        await k.delete()
+        Send_message = await client.send_video(
+            chat_id=msg.chat.id,
+            video="https://telegra.ph/file/3e9f7db0c98e6b236c2c7.mp4",
+            caption=f"Couldn't Find This Movie.Please Try Again Or Search On Our "
+                    f"<b><a href='https://t.me/UFSNewReleased'>Channel</a></b>. \n\n"
+                    f"ഈ സിനിമയുടെ ഒറിജിനൽ പേര് ഗൂഗിളിൽ പോയി കണ്ടെത്തി അതുപോലെ ഇവിടെ കൊടുക്കുക 🥺",
+            parse_mode="html",
+            reply_to_message_id=msg.message_id
+        )
+        await asyncio.sleep(15)  # in seconds
+        await Send_message.delete()
+        # k = await msg.reply("I couldn't find any movie in that name.")
+        # await asyncio.sleep(8)
+        # await k.delete()
         return
     regex = re.compile(r".*(imdb|wikipedia).*", re.IGNORECASE)  # look for imdb / wiki results
     gs = list(filter(regex.match, g_s))
@@ -806,9 +817,20 @@ async def advantage_spell_chok(msg):
     movielist += [(re.sub(r'(\-|\(|\)|_)', '', i, flags=re.IGNORECASE)).strip() for i in gs_parsed]
     movielist = list(dict.fromkeys(movielist))  # removing duplicates
     if not movielist:
-        k = await msg.reply("I Couldn't Find Anything Related To That. Check Your Spelling")
-        await asyncio.sleep(8)
-        await k.delete()
+        Send_message = await client.send_video(
+            chat_id=msg.chat.id,
+            video="https://telegra.ph/file/3e9f7db0c98e6b236c2c7.mp4",
+            caption=f"Couldn't Find This Movie.Please Try Again Or Search On Our "
+                    f"<b><a href='https://t.me/UFSNewReleased'>Channel</a></b>. \n\n"
+                    f"ഈ സിനിമയുടെ ഒറിജിനൽ പേര് ഗൂഗിളിൽ പോയി കണ്ടെത്തി അതുപോലെ ഇവിടെ കൊടുക്കുക 🥺",
+            parse_mode="html",
+            reply_to_message_id=msg.message_id
+        )
+        await asyncio.sleep(15)  # in seconds
+        await Send_message.delete()
+        # k = await msg.reply("I Couldn't Find Anything Related To That. Check Your Spelling")
+        # await asyncio.sleep(8)
+        # await k.delete()
         return
     SPELL_CHECK[msg.message_id] = movielist
     btn = []
