@@ -759,7 +759,7 @@ async def auto_filter(client, msg, spoll=False):
         except Exception as e:
             logger.exception(e)
             # await message.reply_text(cap, reply_markup=InlineKeyboardMarkup(btn))
-            await message.send_photo(
+            await client.send_photo(
                 chat_id=msg.chat.id,
                 photo="https://telegra.ph/file/b62f9703cf805da50d5c4.jpg",
                 caption=cap,
@@ -768,7 +768,7 @@ async def auto_filter(client, msg, spoll=False):
                 reply_to_message_id=msg.message_id)
     else:
         # await message.reply_text(cap, reply_markup=InlineKeyboardMarkup(btn))
-        await message.send_photo(
+        await client.send_photo(
             chat_id=msg.chat.id,
             photo="https://telegra.ph/file/b62f9703cf805da50d5c4.jpg",
             caption=cap,
@@ -844,18 +844,17 @@ async def advantage_spell_chok(client, msg):
         # await k.delete()
         return
     SPELL_CHECK[msg.message_id] = movielist
-    btn = []
-    btn.append([
-        InlineKeyboardButton("⭕️ᴄᴏɴᴛᴀᴄᴛ ᴍᴇ ⭕️", url="https://t.me/UFSChatBot"),
-        InlineKeyboardButton("⚜ ɴᴇᴡ ᴍᴏᴠɪᴇs ⚜", url="https://t.me/joinchat/IbXUj4vTNLphYWNk")
-    ])
 
-    btn.append([
+    btn = [[
                    InlineKeyboardButton(
                        text=movie.strip(),
                        callback_data=f"spolling#{user}#{k}",
                    )
-               ] for k, movie in enumerate(movielist))
+               ] for k, movie in enumerate(movielist)]
     btn.append([InlineKeyboardButton(text="Close", callback_data=f'spolling#{user}#close_spellcheck')])
+    btn.insert(0, [
+        InlineKeyboardButton("⭕️ ᴘᴍ ᴍᴇ ⭕️", url="https://t.me/UFSChatBot"),
+        InlineKeyboardButton("⚜ ɴᴇᴡ ᴍᴏᴠɪᴇs ⚜", url="https://t.me/UFSNewReleased")
+    ])
     await msg.reply("I Couldn't Find Anything Related To That\nDid You Mean Any One Of These 👇🏻?",
                     reply_markup=InlineKeyboardMarkup(btn))
