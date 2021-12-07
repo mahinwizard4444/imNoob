@@ -651,6 +651,17 @@ async def auto_filter(client, msg, spoll=False):
                 if SPELL_CHECK_REPLY:
                     return await advantage_spell_chok(client, msg)
                 else:
+                    Send_message = await client.send_video(
+                        chat_id=msg.chat.id,
+                        video="https://telegra.ph/file/3e9f7db0c98e6b236c2c7.mp4",
+                        caption=f"Couldn't Find This Movie.Please Try Again Or Search On Our "
+                                f"<b><a href='https://t.me/UFSNewReleased'>Channel</a></b>. \n\n"
+                                f"ഈ സിനിമയുടെ ഒറിജിനൽ പേര് ഗൂഗിളിൽ പോയി കണ്ടെത്തി അതുപോലെ ഇവിടെ കൊടുക്കുക 🥺",
+                        parse_mode="html",
+                        reply_to_message_id=msg.message_id
+                    )
+                    await asyncio.sleep(15)  # in seconds
+                    await Send_message.delete()
                     return
         else:
             return
