@@ -74,7 +74,8 @@ async def give_filter(client, message):
 @Client.on_callback_query(filters.regex(r"^next"))
 async def next_page(bot, query):
     ident, req, key, offset = query.data.split("_")
-    if int(req) not in ADMINS:
+    ad_user = query.from_user.id
+    if int(ad_user) in ADMINS:
         pass
     elif int(req) not in [query.from_user.id, 0]:
         return await query.answer("എല്ലാം കൊള്ളാം, പക്ഷേ, ഇത്‌ നിനക്കുള്ളതല്ല;\nNice Try! But, This Is Not For You;",
@@ -160,7 +161,8 @@ async def next_page(bot, query):
 @Client.on_callback_query(filters.regex(r"^spolling"))
 async def advantage_spoll_choker(bot, query):
     _, user, movie_ = query.data.split('#')
-    if int(user) not in ADMINS:
+    ad_user = query.from_user.id
+    if int(ad_user) in ADMINS:
         pass
     elif int(user) != 0 and query.from_user.id != int(user):
         return await query.answer("എല്ലാം കൊള്ളാം, പക്ഷേ, ഇത്‌ നിനക്കുള്ളതല്ല;\nNice Try! But, This Is Not For You;",
@@ -375,7 +377,8 @@ async def cb_handler(client: Client, query: CallbackQuery):
         ident, file_id = query.data.split("#")
         files_ = await get_file_details(file_id)
         user = query.message.reply_to_message.from_user.id
-        if int(user) in ADMINS:
+        ad_user = query.from_user.id
+        if int(ad_user) in ADMINS:
             pass
         elif int(user) != 0 and query.from_user.id != int(user):
             return await query.answer(
