@@ -78,7 +78,7 @@ async def next_page(bot, query):
     if int(ad_user) in ADMINS:
         pass
     elif int(req) not in [query.from_user.id, 0]:
-        return await query.answer("എല്ലാം കൊള്ളാം, പക്ഷേ, ഇത്‌ നിനക്കുള്ളതല്ല;\nNice Try! But, This Was Not Your Request, Request Yourself;",
+        return await query.answer("കാര്യമൊക്കെ കൊള്ളാം, പക്ഷേ, ഇത്‌ നിങ്ങളുടേതല്ല.;\nNice Try! But, This Was Not Your Request, Request Yourself;",
                                   show_alert=True)
     try:
         offset = int(offset)
@@ -165,7 +165,7 @@ async def advantage_spoll_choker(bot, query):
     if int(ad_user) in ADMINS:
         pass
     elif int(user) != 0 and query.from_user.id != int(user):
-        return await query.answer("എല്ലാം കൊള്ളാം, പക്ഷേ, ഇത്‌ നിനക്കുള്ളതല്ല;\nNice Try! But, This Was Not Your Request, Request Yourself;",
+        return await query.answer("കാര്യമൊക്കെ കൊള്ളാം, പക്ഷേ, ഇത്‌ നിങ്ങളുടേതല്ല.;\nNice Try! But, This Was Not Your Request, Request Yourself;",
                                   show_alert=True)
     if movie_ == "close_spellcheck":
         return await query.message.delete()
@@ -382,7 +382,7 @@ async def cb_handler(client: Client, query: CallbackQuery):
             pass
         elif int(user) != 0 and query.from_user.id != int(user):
             return await query.answer(
-                "എല്ലാം കൊള്ളാം, പക്ഷേ, ഇത്‌ നിനക്കുള്ളതല്ല;\nNice Try! But, This Was Not Your Request, Request Yourself;",
+                "കാര്യമൊക്കെ കൊള്ളാം, പക്ഷേ, ഇത്‌ നിങ്ങളുടേതല്ല.;\nNice Try! But, This Was Not Your Request, Request Yourself;",
                 show_alert=True)
 
         if not files_:
