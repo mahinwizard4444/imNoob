@@ -748,7 +748,10 @@ async def auto_filter(client, msg, k=None, spoll=False):
         ]
 
     if offset != "":
-        key = f"{message.chat.id}-{message.message_id}"
+        if not k is None:
+            key = f"{message.message.chat.id}-{message.message.message_id}"
+        else:
+            key = f"{message.chat.id}-{message.message_id}"
         BUTTONS[key] = search
         req = message.from_user.id if message.from_user else 0
         btn.append(
@@ -813,6 +816,35 @@ async def auto_filter(client, msg, k=None, spoll=False):
         except Exception as e:
             logger.exception(e)
             # await message.reply_text(cap, reply_markup=InlineKeyboardMarkup(btn))
+            if not k is None:
+                await client.send_photo(
+                    chat_id=msg.message.chat.id,
+                    photo="https://telegra.ph/file/b62f9703cf805da50d5c4.jpg",
+                    caption=cap,
+                    reply_markup=InlineKeyboardMarkup(btn),
+                    parse_mode="html",
+                    reply_to_message_id=msg.message.reply_to_message.message_id)
+                await msg.message.delete()
+            else:
+                await client.send_photo(
+                    chat_id=msg.chat.id,
+                    photo="https://telegra.ph/file/b62f9703cf805da50d5c4.jpg",
+                    caption=cap,
+                    reply_markup=InlineKeyboardMarkup(btn),
+                    parse_mode="html",
+                    reply_to_message_id=msg.message_id)
+    else:
+        # await message.reply_text(cap, reply_markup=InlineKeyboardMarkup(btn))
+        if not k is None:
+            await client.send_photo(
+                chat_id=msg.message.chat.id,
+                photo="https://telegra.ph/file/b62f9703cf805da50d5c4.jpg",
+                caption=cap,
+                reply_markup=InlineKeyboardMarkup(btn),
+                parse_mode="html",
+                reply_to_message_id=msg.message.reply_to_message.message_id)
+            await msg.message.delete()
+        else:
             await client.send_photo(
                 chat_id=msg.chat.id,
                 photo="https://telegra.ph/file/b62f9703cf805da50d5c4.jpg",
@@ -820,15 +852,6 @@ async def auto_filter(client, msg, k=None, spoll=False):
                 reply_markup=InlineKeyboardMarkup(btn),
                 parse_mode="html",
                 reply_to_message_id=msg.message_id)
-    else:
-        # await message.reply_text(cap, reply_markup=InlineKeyboardMarkup(btn))
-        await client.send_photo(
-            chat_id=msg.chat.id,
-            photo="https://telegra.ph/file/b62f9703cf805da50d5c4.jpg",
-            caption=cap,
-            reply_markup=InlineKeyboardMarkup(btn),
-            parse_mode="html",
-            reply_to_message_id=msg.message_id)
     if spoll:
         await msg.message.delete()
 
