@@ -68,7 +68,7 @@ async def give_filter(client, message):
                 break
 
     else:
-        await auto_filter(client, message)
+        await auto_filter(client, message, None)
 
 
 @Client.on_callback_query(filters.regex(r"^next"))
@@ -656,13 +656,50 @@ async def cb_handler(client: Client, query: CallbackQuery):
         )
 
 
-async def auto_filter(client, msg, spoll=False):
+async def auto_filter(client, msg, k=None, spoll=False):
     if not spoll:
         message = msg
-        if re.findall("((^\/|^,|^!|^\.|^[\U0001F600-\U000E007F]).*)", message.text):
-            return
-        if 2 < len(message.text) < 100:
-            search = message.text
+        if not k is None:
+            movie, files, offset, total_results = k[0], k[1], k[2], k[3]
+            search = movie
+            if re.findall("((^\/|^,|^!|^\.|^[\U0001F600-\U000E007F]).*)", search):
+                return
+        else:
+            if re.findall("((^\/|^,|^!|^\.|^[\U0001F600-\U000E007F]).*)", message.text):
+                return
+
+        if k is None:
+            if 2 < len(message.text) < 100:
+                if not k is None:
+                    movie, files, offset, total_results = k[0], k[1], k[2], k[3]
+                    search = movie
+                else:
+                    search = message.text
+                files, offset, total_results = await get_search_results(search.lower(), offset=0, filter=True)
+                if not files:
+                    if SPELL_CHECK_REPLY:
+                        return await advantage_spell_chok(client, msg)
+                    else:
+                        Send_message = await client.send_video(
+                            chat_id=msg.chat.id,
+                            video="https://telegra.ph/file/3e9f7db0c98e6b236c2c7.mp4",
+                            caption=f"Couldn't Find This Movie.Please Try Again Or Search On Our "
+                                    f"<b><a href='https://t.me/UFSNewReleased'>Channel</a></b>. \n\n"
+                                    f"ഈ സിനിമയുടെ ഒറിജിനൽ പേര് ഗൂഗിളിൽ പോയി കണ്ടെത്തി അതുപോലെ ഇവിടെ കൊടുക്കുക 🥺",
+                            parse_mode="html",
+                            reply_to_message_id=msg.message_id
+                        )
+                        await asyncio.sleep(15)  # in seconds
+                        await Send_message.delete()
+                        return
+            else:
+                return
+        elif 2 < len(search) < 100:
+            if not k is None:
+                movie, files, offset, total_results = k[0], k[1], k[2], k[3]
+                search = movie
+            else:
+                search = message.text
             files, offset, total_results = await get_search_results(search.lower(), offset=0, filter=True)
             if not files:
                 if SPELL_CHECK_REPLY:
