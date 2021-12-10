@@ -8,7 +8,6 @@ from utils import broadcast_messages, get_msg_type, Types, markdown_parser
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from pyrogram.errors import BadRequest, FloodWait, UserIsBlocked, InputUserDeactivated, UserIsBot, PeerIdInvalid
 import asyncio
-import bot
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
