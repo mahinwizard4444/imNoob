@@ -49,4 +49,3 @@ class Bot(Client):
 
 app = Bot()
 app.run()
-# dispatcher = app.dispatcher
