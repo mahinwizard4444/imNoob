@@ -1,5 +1,5 @@
 import logging
-from pyrogram import Client, filters
+from pyrogram import Client, filters, dispatcher
 import datetime
 import time
 from database.users_chats_db import db
@@ -8,21 +8,22 @@ from utils import broadcast_messages, get_msg_type, Types, markdown_parser
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from pyrogram.errors import BadRequest, FloodWait, UserIsBlocked, InputUserDeactivated, UserIsBot, PeerIdInvalid
 import asyncio
+from bot import dispatcher
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 
 ENUM_FUNC_MAP = {
-    Types.TEXT.value: Client.send_message,
-    Types.BUTTON_TEXT.value: Client.send_message,
-    Types.STICKER.value: Client.send_sticker,
-    Types.DOCUMENT.value: Client.send_document,
-    Types.PHOTO.value: Client.send_photo,
-    Types.BUTTON_PHOTO.value: Client.send_photo,
-    Types.AUDIO.value: Client.send_audio,
-    Types.VOICE.value: Client.send_voice,
-    Types.VIDEO.value: Client.send_video
+    Types.TEXT.value: dispatcher.client.send_message,
+    Types.BUTTON_TEXT.value: dispatcher.client.send_message,
+    Types.STICKER.value: dispatcher.client.send_sticker,
+    Types.DOCUMENT.value: dispatcher.client.send_document,
+    Types.PHOTO.value: dispatcher.client.send_photo,
+    Types.BUTTON_PHOTO.value: dispatcher.client.send_photo,
+    Types.AUDIO.value: dispatcher.client.send_audio,
+    Types.VOICE.value: dispatcher.client.send_voice,
+    Types.VIDEO.value: dispatcher.client.send_video
 }
 
 

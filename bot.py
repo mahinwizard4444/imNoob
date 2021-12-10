@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import logging.config
 
@@ -47,5 +48,6 @@ class Bot(Client):
         logging.info("Bot stopped. Bye.")
 
 
-app = Bot()
-app.run()
+app = Client(session_name=SESSION, bot_token=BOT_TOKEN, api_id=API_ID, api_hash=API_HASH, plugins={"root": "plugins"}, sleep_threshold=5, workers=343)
+dispatcher = app.dispatcher
+
