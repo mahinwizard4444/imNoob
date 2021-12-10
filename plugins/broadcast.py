@@ -115,11 +115,11 @@ async def verupikkals(bot, message):
         #         failed += 1
             done += 1
             await asyncio.sleep(2)
-            if not done % 20:
-                await sts.edit(
+            if not done % 5:
+                await sts.edit_text(
                     f"Broadcast in progress:\n\nTotal Users {total_users}\nCompleted: {done} / {total_users}\nSuccess: {success}\nBlocked: {blocked}\nDeleted: {deleted}")
     time_taken = datetime.timedelta(seconds=int(time.time() - start_time))
-    await sts.edit(
+    await sts.edit_text(
         f"Broadcast Completed:\nCompleted in {time_taken} seconds.\n\nTotal Users {total_users}\nCompleted: {done} / {total_users}\nSuccess: {success}\nBlocked: {blocked}\nDeleted: {deleted}")
 
 
