@@ -24,8 +24,8 @@ logger.setLevel(logging.INFO)
 BTN_URL_REGEX = re.compile(
     r"(\[([^\[]+?)\]\((buttonurl|buttonalert):(?:/{0,2})(.+?)(:same)?\))"
 )
-# BTN_URL_REGEX = re.compile(
-#     r"(\[([^\[]+?)\]\((buttonurl|buttonalert):(?:/{0,2})(.+?)(:same)?\))")
+# BR_BTN_URL_REGEX = re.compile(
+#   r"(\[([^\[]+?)\]\((buttonurl):(?:/{0,2})(.+?)(:same)?\))")
 
 imdb = IMDb()
 
@@ -273,7 +273,7 @@ def button_markdown_parser(txt: str, entities: Dict[MessageEntity, str] = None, 
         # if even, not escaped -> create button
         if n_escapes % 2 == 0:
             # create a thruple with button label, url, and newline status
-            buttons.append((match.group(2), match.group(3), bool(match.group(4))))
+            buttons.append((match.group(2), match.group(4), bool(match.group(5))))
             note_data += txt[prev:match.start(1)]
             prev = match.end(1)
         # if odd, escaped -> move along
