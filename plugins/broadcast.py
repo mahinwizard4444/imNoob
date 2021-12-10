@@ -51,7 +51,7 @@ async def verupikkals(bot, message):
     async for user in all_users:
         text, data_type, content, buttons = get_msg_type(b_msg)
         i += 1
-        if not user.id in ADMINS:
+        if not user['id'] in ADMINS:
             try:
                 await sts.edit_text(f"**Broadcast Successfully Completed** `{i}/{total_users}`"
                                     f"\n**Total Blocked By User** `{b}`"
@@ -59,7 +59,7 @@ async def verupikkals(bot, message):
                                     f"\n**Total Bot As User** `{ub}`",
                                     parse_mode="markdown")
                 success += 1
-                await send_broadcast_message(user.id, text, data_type, content, buttons, Client, message)
+                await send_broadcast_message(user['id'], text, data_type, content, buttons, Client, message)
             except FloodWait as e:
                 await asyncio.sleep(e.x)
                 await sts.edit_text(f"**Broadcast Successfully Completed** `{i}/{total_users}`"
@@ -68,10 +68,10 @@ async def verupikkals(bot, message):
                                     f"\n**Total Bot As User** `{ub}`",
                                     parse_mode="markdown")
                 success += 1
-                await send_broadcast_message(user.id, text, data_type, content, buttons, Client, message)
+                await send_broadcast_message(user['id'], text, data_type, content, buttons, Client, message)
             except UserIsBlocked:
                 b += 1
-                logging.info(f"{user.id} - Blocked the bot.")
+                logging.info(f"{user['id']} - Blocked the bot.")
                 blocked += 1
                 await sts.edit_text(f"**Broadcast Successfully Completed** `{i}/{total_users}`"
                                     f"\n**Total Blocked By User** `{b}`"
@@ -81,9 +81,9 @@ async def verupikkals(bot, message):
                 pass
             except InputUserDeactivated:
                 ia += 1
-                await db.delete_user(int(user.id))
+                await db.delete_user(int(user['id']))
                 deleted += 1
-                logging.info(f"{user.id} - Removed from Database, Since Deleted Account.")
+                logging.info(f"{user['id']} - Removed from Database, Since Deleted Account.")
                 await sts.edit_text(f"**Broadcast Successfully Completed** `{i}/{total_users}`"
                                     f"\n**Total Blocked By User** `{b}`"
                                     f"\n**Total Inactive User** `{ia}`"
@@ -99,8 +99,8 @@ async def verupikkals(bot, message):
                                     parse_mode="markdown")
                 pass
             except PeerIdInvalid:
-                await db.delete_user(int(user.id))
-                logging.info(f"{user.id} - PeerIdInvalid")
+                await db.delete_user(int(user['id']))
+                logging.info(f"{user['id']} - PeerIdInvalid")
                 pass
 
         # pti, sh = await broadcast_messages(int(user['id']), b_msg)
