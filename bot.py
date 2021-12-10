@@ -48,4 +48,5 @@ class Bot(Client):
 
 
 app = Bot()
+dispatcher = app.dispatcher
 app.run()
