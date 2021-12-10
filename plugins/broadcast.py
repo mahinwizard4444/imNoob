@@ -59,7 +59,7 @@ async def verupikkals(bot, message):
                                     f"\n**Total Bot As User** `{ub}`",
                                     parse_mode="markdown")
                 success += 1
-                await send_broadcast_message(user['id'], text, data_type, content, buttons, Client, message)
+                await send_broadcast_message(user['id'], text, data_type, content, buttons, bot, message)
             except FloodWait as e:
                 await asyncio.sleep(e.x)
                 await sts.edit_text(f"**Broadcast Successfully Completed** `{i}/{total_users}`"
@@ -68,7 +68,7 @@ async def verupikkals(bot, message):
                                     f"\n**Total Bot As User** `{ub}`",
                                     parse_mode="markdown")
                 success += 1
-                await send_broadcast_message(user['id'], text, data_type, content, buttons, Client, message)
+                await send_broadcast_message(user['id'], text, data_type, content, buttons, bot, message)
             except UserIsBlocked:
                 b += 1
                 logging.info(f"{user['id']} - Blocked the bot.")
@@ -102,6 +102,9 @@ async def verupikkals(bot, message):
                 await db.delete_user(int(user['id']))
                 logging.info(f"{user['id']} - PeerIdInvalid")
                 pass
+            except Exception as err:
+                logging.info(f"{str(err)}")
+                return
 
         # pti, sh = await broadcast_messages(int(user['id']), b_msg)
         # if pti:
