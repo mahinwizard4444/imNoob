@@ -1,3 +1,7 @@
+import asyncio
+import random
+
+from info import PICS
 from pyrogram import Client, filters
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from pyrogram.errors.exceptions.bad_request_400 import MessageTooLong, PeerIdInvalid
@@ -140,6 +144,7 @@ async def re_enable_chat(bot, message):
 @Client.on_message(filters.command('stats') & filters.incoming)
 async def get_ststs(bot, message):
     rju = await message.reply('Fetching stats..')
+    await asyncio.sleep(2)
     total_users = await db.total_users_count()
     totl_chats = await db.total_chat_count()
     files = await Media.count_documents()
@@ -147,7 +152,14 @@ async def get_ststs(bot, message):
     free = 536870912 - size
     size = get_size(size)
     free = get_size(free)
-    await rju.edit(script.STATUS_TXT.format(files, total_users, totl_chats, size, free))
+    await rju.delete()
+    await message.reply_photo(
+        photo=random.choice(PICS),
+        caption=script.STATUS_TXT.format(files, total_users, totl_chats, size, free),
+        parse_mode='html',
+        reply_to_message_id=message.message_id
+    )
+    # await rju.edit(script.STATUS_TXT.format(files, total_users, totl_chats, size, free))
 
 
 # a function for trespassing into others groups, Inspired by a Vazha
