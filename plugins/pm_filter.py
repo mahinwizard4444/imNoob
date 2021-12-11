@@ -162,11 +162,11 @@ async def next_page(bot, query):
 async def advantage_spoll_choker(bot, query):
     _, user, movie_ = query.data.split('#')
     ad_user = query.from_user.id
-    if int(ad_user) in ADMINS:
-        pass
-    elif int(user) != 0 and query.from_user.id != int(user):
-        return await query.answer("കാര്യമൊക്കെ കൊള്ളാം, പക്ഷേ, ഇത്‌ നിങ്ങളുടേതല്ല.;\nNice Try! But, This Was Not Your Request, Request Yourself;",
-                                  show_alert=True)
+    # if int(ad_user) in ADMINS:
+    #     pass
+    # elif int(user) != 0 and query.from_user.id != int(user):
+    #     return await query.answer("കാര്യമൊക്കെ കൊള്ളാം, പക്ഷേ, ഇത്‌ നിങ്ങളുടേതല്ല.;\nNice Try! But, This Was Not Your Request, Request Yourself;",
+    #                               show_alert=True)
     if movie_ == "close_spellcheck":
         return await query.message.delete()
     movies = SPELL_CHECK.get(query.message.reply_to_message.message_id)
