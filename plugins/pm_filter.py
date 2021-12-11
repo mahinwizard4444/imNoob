@@ -378,12 +378,12 @@ async def cb_handler(client: Client, query: CallbackQuery):
         files_ = await get_file_details(file_id)
         user = query.message.reply_to_message.from_user.id
         ad_user = query.from_user.id
-        if int(ad_user) in ADMINS:
-            pass
-        elif int(user) != 0 and query.from_user.id != int(user):
-            return await query.answer(
-                "കാര്യമൊക്കെ കൊള്ളാം, പക്ഷേ, ഇത്‌ നിങ്ങളുടേതല്ല.;\nNice Try! But, This Was Not Your Request, Request Yourself;",
-                show_alert=True)
+        # if int(ad_user) in ADMINS:
+        #     pass
+        # elif int(user) != 0 and query.from_user.id != int(user):
+        #     return await query.answer(
+        #         "കാര്യമൊക്കെ കൊള്ളാം, പക്ഷേ, ഇത്‌ നിങ്ങളുടേതല്ല.;\nNice Try! But, This Was Not Your Request, Request Yourself;",
+        #         show_alert=True)
 
         if not files_:
             return await query.answer('No such file exist.')
