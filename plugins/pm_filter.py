@@ -2,8 +2,10 @@ import re
 import ast
 import asyncio
 import logging
+import random
 import pyrogram
 
+from info import PICS
 from Script import script
 from pyrogram import Client, filters
 from database.users_chats_db import db
@@ -819,7 +821,7 @@ async def auto_filter(client, msg, k=None, spoll=False):
             if not k is None:
                 await client.send_photo(
                     chat_id=msg.message.chat.id,
-                    photo="https://telegra.ph/file/b62f9703cf805da50d5c4.jpg",
+                    photo=random.choice(PICS),
                     caption=cap,
                     reply_markup=InlineKeyboardMarkup(btn),
                     parse_mode="html",
@@ -828,7 +830,7 @@ async def auto_filter(client, msg, k=None, spoll=False):
             else:
                 await client.send_photo(
                     chat_id=msg.chat.id,
-                    photo="https://telegra.ph/file/b62f9703cf805da50d5c4.jpg",
+                    photo=random.choice(PICS),
                     caption=cap,
                     reply_markup=InlineKeyboardMarkup(btn),
                     parse_mode="html",
@@ -838,7 +840,7 @@ async def auto_filter(client, msg, k=None, spoll=False):
         if not k is None:
             await client.send_photo(
                 chat_id=msg.message.chat.id,
-                photo="https://telegra.ph/file/b62f9703cf805da50d5c4.jpg",
+                photo=random.choice(PICS),
                 caption=cap,
                 reply_markup=InlineKeyboardMarkup(btn),
                 parse_mode="html",
@@ -847,7 +849,7 @@ async def auto_filter(client, msg, k=None, spoll=False):
         else:
             await client.send_photo(
                 chat_id=msg.chat.id,
-                photo="https://telegra.ph/file/b62f9703cf805da50d5c4.jpg",
+                photo=random.choice(PICS),
                 caption=cap,
                 reply_markup=InlineKeyboardMarkup(btn),
                 parse_mode="html",

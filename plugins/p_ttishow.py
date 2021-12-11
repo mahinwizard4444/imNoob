@@ -153,10 +153,18 @@ async def get_ststs(bot, message):
     size = get_size(size)
     free = get_size(free)
     await rju.delete()
+    buttons = [
+        [
+            InlineKeyboardButton('👩‍🦯 Back', callback_data='help'),
+            InlineKeyboardButton('♻️Rᴇғʀᴇsʜ', callback_data='rfrsh')
+        ]
+    ]
+    reply_markup = InlineKeyboardMarkup(buttons)
     await message.reply_photo(
         photo=random.choice(PICS),
         caption=script.STATUS_TXT.format(files, total_users, totl_chats, size, free),
         parse_mode='html',
+        reply_markup=reply_markup,
         reply_to_message_id=message.message_id
     )
     # await rju.edit(script.STATUS_TXT.format(files, total_users, totl_chats, size, free))
