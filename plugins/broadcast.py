@@ -8,23 +8,9 @@ from utils import broadcast_messages, get_msg_type, Types, markdown_parser
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from pyrogram.errors import BadRequest, FloodWait, UserIsBlocked, InputUserDeactivated, UserIsBot, PeerIdInvalid
 import asyncio
-from bot import dispatcher
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
-
-
-ENUM_FUNC_MAP = {
-    Types.TEXT.value: dispatcher.client.send_message,
-    Types.BUTTON_TEXT.value: dispatcher.client.send_message,
-    Types.STICKER.value: dispatcher.client.send_sticker,
-    Types.DOCUMENT.value: dispatcher.client.send_document,
-    Types.PHOTO.value: dispatcher.client.send_photo,
-    Types.BUTTON_PHOTO.value: dispatcher.client.send_photo,
-    Types.AUDIO.value: dispatcher.client.send_audio,
-    Types.VOICE.value: dispatcher.client.send_voice,
-    Types.VIDEO.value: dispatcher.client.send_video
-}
 
 
 @Client.on_message(filters.command("broadcast") & filters.user(ADMINS) & filters.reply)
@@ -130,7 +116,16 @@ async def send_broadcast_message(user_id, text, data_type, content, buttons, cli
     if message.from_user.id in ADMINS:
         if data_type != Types.TEXT and data_type != Types.BUTTON_TEXT and \
                 data_type != Types.PHOTO and data_type != Types.BUTTON_PHOTO:
-            await ENUM_FUNC_MAP[data_type](user_id, content)
+            if data_type == 2:
+                await client.send_sticker(chat_id=user_id, sticker=content)
+            elif data_type == 3:
+                await client.send_document(chat_id=user_id, document=content)
+            elif data_type == 6:
+                await client.send_audio(chat_id=user_id, audio=content)
+            elif data_type == 7:
+                await client.send_voice(chat_id=user_id, voice=content)
+            elif data_type == 8:
+                await client.send_video(chat_id=user_id, video=content)
             return
         # else, move on
 
@@ -143,10 +138,9 @@ async def send_broadcast_message(user_id, text, data_type, content, buttons, cli
         keyboard = InlineKeyboardMarkup(keyb)
 
         if data_type == Types.BUTTON_PHOTO:
-            await ENUM_FUNC_MAP[data_type](user_id, content, caption=text, reply_markup=keyboard,
-                                           parse_mode="markdown")
+            await client.send_photo(user_id, content, caption=text, reply_markup=keyboard, parse_mode="markdown")
         elif data_type == Types.PHOTO:
-            await ENUM_FUNC_MAP[data_type](user_id, content, caption=text, parse_mode="markdown")
+            await client.send_photo(user_id, content, caption=text, parse_mode="markdown")
         else:
             # send(client, job.s_chat_id, msg_text, keyboard, "Hey Dear, how are you?")
             try:

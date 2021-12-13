@@ -4,8 +4,11 @@ import time
 import logging
 import random
 import asyncio
+
+from bot import Bot
 from Script import script
 from pyrogram import Client, filters
+from database.batch_db import get_batch
 from pyrogram.errors.exceptions.bad_request_400 import ChatAdminRequired
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from database.ia_filterdb import Media, get_file_details, unpack_new_file_id
@@ -47,7 +50,6 @@ async def start(client, message):
             ]]
             message.reply("Goto My PM, Then Click Start.. Here You Are Restricted By Admins...", reply_markup=btn)
             return
-
     if not await db.is_user_exist(message.from_user.id):
         await db.add_user(message.from_user.id, message.from_user.first_name)
         await client.send_message(LOG_CHANNEL,
@@ -107,7 +109,42 @@ async def start(client, message):
             parse_mode='html'
         )
         return
+
     file_id = message.command[1]
+    unique_id, file_id, file_ref, caption = await get_batch(file_id)
+
+    if unique_id:
+        temp_msg = await message.reply("Please wait...")
+        file_args = file_id.split("#")
+        cap_args = caption.split("#")
+        i = 0
+        await asyncio.sleep(2)
+        await temp_msg.delete()
+        for b_file in file_args:
+            f_caption = cap_args[i]
+            if f_caption is None:
+                f_caption = ""
+            f_caption = f_caption + f"\n\n<code>┈•••✿</code> @UniversalFilmStudio <code>✿•••┈</code>"
+            i += 1
+            await client.send_cached_media(
+                chat_id=message.from_user.id,
+                file_id=b_file,
+                caption=f_caption,
+                parse_mode="html",
+                reply_markup=InlineKeyboardMarkup(
+                    [
+                        [
+                            InlineKeyboardButton(
+                                '🎭 ⭕️ ᴄᴏɴᴛᴀᴄᴛ ᴍᴇ ⭕️', url="https://t.me/UFSChatBot"
+                            )
+                        ]
+                    ]
+                )
+            )
+            await asyncio.sleep(1)
+
+        return await message.reply(f"<b><a href='https://t.me/UniversalFilmStudio'>Thank For Using Me...</a></b>")
+
     files_ = await get_file_details(file_id)
     if not files_:
         return await message.reply('No such file exist.')
@@ -266,3 +303,12 @@ async def upstream_repo(bot, message):
     time.sleep(10)
     await msg.delete()
     await message.delete()
+
+
+@Bot.on_message(filters.command("bat"))
+async def start111(client: Client, message):
+    try:
+        answer = await client.ask(message.chat.id, '*Send me your name:*', parse_mode='Markdown')
+        await client.send_message(message.chat.id, f'Your name is: ')
+    except Exception as err:
+        await client.send_message(message.chat.id, f'Error is: {str(err)}')

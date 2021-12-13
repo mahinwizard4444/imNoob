@@ -1,7 +1,8 @@
-import asyncio
 import logging
+import asyncio
 import logging.config
 
+import pyromod.listen
 from pyrogram import Client, __version__
 from pyrogram.raw.all import layer
 from database.ia_filterdb import Media
@@ -15,39 +16,41 @@ logging.getLogger().setLevel(logging.INFO)
 logging.getLogger("pyrogram").setLevel(logging.ERROR)
 logging.getLogger("imdbpy").setLevel(logging.ERROR)
 
-#
-# class Bot(Client):
-#
-#     def __init__(self):
-#         super().__init__(
-#             session_name=SESSION,
-#             api_id=API_ID,
-#             api_hash=API_HASH,
-#             bot_token=BOT_TOKEN,
-#             workers=50,
-#             plugins={"root": "plugins"},
-#             sleep_threshold=5,
-#         )
-#
-#     async def start(self):
-#         b_users, b_chats = await db.get_banned()
-#         temp.BANNED_USERS = b_users
-#         temp.BANNED_CHATS = b_chats
-#         await super().start()
-#         await Media.ensure_indexes()
-#         me = await self.get_me()
-#         temp.ME = me.id
-#         temp.U_NAME = me.username
-#         temp.B_NAME = me.first_name
-#         self.username = '@' + me.username
-#         logging.info(f"{me.first_name} with for Pyrogram v{__version__} (Layer {layer}) started on {me.username}.")
-#         logging.info(LOG_STR)
-#
-#     async def stop(self, *args):
-#         await super().stop()
-#         logging.info("Bot stopped. Bye.")
+
+class Bot(Client):
+
+    def __init__(self):
+        super().__init__(
+            session_name=SESSION,
+            api_id=API_ID,
+            api_hash=API_HASH,
+            bot_token=BOT_TOKEN,
+            workers=50,
+            plugins={"root": "plugins"},
+            sleep_threshold=5,
+        )
+
+    async def start(self):
+        b_users, b_chats = await db.get_banned()
+        temp.BANNED_USERS = b_users
+        temp.BANNED_CHATS = b_chats
+        await super().start()
+        await Media.ensure_indexes()
+        me = await self.get_me()
+        temp.ME = me.id
+        temp.U_NAME = me.username
+        temp.B_NAME = me.first_name
+        self.username = '@' + me.username
+        logging.info(LOG_STR)
+        logging.info(f"{me.first_name} with for Pyrogram v{__version__} (Layer {layer}) started on {me.username}.")
+        logging.info(f"{me.first_name} Has Started Running...🏃💨💨")
+
+    async def stop(self, *args):
+        await super().stop()
+        logging.info("Bot stopped. Bye.")
 
 
-app = Client(session_name=SESSION, bot_token=BOT_TOKEN, api_id=API_ID, api_hash=API_HASH, plugins={"root": "plugins"}, sleep_threshold=5, workers=343)
-dispatcher = app.dispatcher
-
+# app = Bot()
+# app.run()
+if __name__ == '__main__':
+    asyncio.get_event_loop().run_until_complete(Bot().run())
