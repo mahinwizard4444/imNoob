@@ -126,21 +126,24 @@ async def start(client, message):
                 f_caption = ""
             f_caption = f_caption + f"\n\n<code>┈•••✿</code> @UniversalFilmStudio <code>✿•••┈</code>"
             i += 1
-            await client.send_cached_media(
-                chat_id=message.from_user.id,
-                file_id=b_file,
-                caption=f_caption,
-                parse_mode="html",
-                reply_markup=InlineKeyboardMarkup(
-                    [
+            try:
+                await client.send_cached_media(
+                    chat_id=message.from_user.id,
+                    file_id=b_file,
+                    caption=f_caption,
+                    parse_mode="html",
+                    reply_markup=InlineKeyboardMarkup(
                         [
-                            InlineKeyboardButton(
-                                '🎭 ⭕️ ᴄᴏɴᴛᴀᴄᴛ ᴍᴇ ⭕️', url="https://t.me/UFSChatBot"
-                            )
+                            [
+                                InlineKeyboardButton(
+                                    '🎭 ⭕️ ᴄᴏɴᴛᴀᴄᴛ ᴍᴇ ⭕️', url="https://t.me/UFSChatBot"
+                                )
+                            ]
                         ]
-                    ]
+                    )
                 )
-            )
+            except Exception as err:
+                return await message.reply(f"{str(err)}")
             await asyncio.sleep(1)
 
         return await message.reply(f"<b><a href='https://t.me/UniversalFilmStudio'>Thank For Using Me...</a></b>")
