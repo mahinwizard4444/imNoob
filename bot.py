@@ -50,7 +50,3 @@ class Bot(Client):
         logging.info("Bot stopped. Bye.")
 
 
-# app = Bot()
-# app.run()
-if __name__ == '__main__':
-    asyncio.get_event_loop().run_until_complete(Bot().run())
