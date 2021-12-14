@@ -111,11 +111,11 @@ async def start(client, message):
         return
 
     file_id = message.command[1]
-    unique_id, file_id, file_ref, caption = await get_batch(file_id)
+    unique_id, f_id, file_ref, caption = await get_batch(file_id)
 
     if unique_id:
         temp_msg = await message.reply("Please wait...")
-        file_args = file_id.split("#")
+        file_args = f_id.split("#")
         cap_args = caption.split("#")
         i = 0
         await asyncio.sleep(2)
