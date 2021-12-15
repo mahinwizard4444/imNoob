@@ -36,39 +36,40 @@ async def give_filter(client, message):
     for keyword in reversed(sorted(keywords, key=len)):
         pattern = r"( |^|[^\w])" + re.escape(keyword) + r"( |$|[^\w])"
         if re.search(pattern, name, flags=re.IGNORECASE):
-            reply_text, btn, alert, fileid = await find_filter(group_id, keyword)
-
-            if reply_text:
-                reply_text = reply_text.replace("\\n", "\n").replace("\\t", "\t")
-
-            if btn is not None:
-                try:
-                    if fileid == "None":
-                        if btn == "[]":
-                            await message.reply_text(reply_text, disable_web_page_preview=True)
-                        else:
-                            button = eval(btn)
-                            await message.reply_text(
-                                reply_text,
-                                disable_web_page_preview=True,
-                                reply_markup=InlineKeyboardMarkup(button)
-                            )
-                    elif btn == "[]":
-                        await message.reply_cached_media(
-                            fileid,
-                            caption=reply_text or ""
-                        )
-                    else:
-                        button = eval(btn)
-                        await message.reply_cached_media(
-                            fileid,
-                            caption=reply_text or "",
-                            reply_markup=InlineKeyboardMarkup(button)
-                        )
-                except Exception as e:
-                    logger.exception(e)
-                break
-
+            await check_manual_filter(group_id, keyword, message)
+            return
+            # reply_text, btn, alert, fileid = await find_filter(group_id, keyword)
+            #
+            # if reply_text:
+            #     reply_text = reply_text.replace("\\n", "\n").replace("\\t", "\t")
+            #
+            # if btn is not None:
+            #     try:
+            #         if fileid == "None":
+            #             if btn == "[]":
+            #                 await message.reply_text(reply_text, disable_web_page_preview=True)
+            #             else:
+            #                 button = eval(btn)
+            #                 await message.reply_text(
+            #                     reply_text,
+            #                     disable_web_page_preview=True,
+            #                     reply_markup=InlineKeyboardMarkup(button)
+            #                 )
+            #         elif btn == "[]":
+            #             await message.reply_cached_media(
+            #                 fileid,
+            #                 caption=reply_text or ""
+            #             )
+            #         else:
+            #             button = eval(btn)
+            #             await message.reply_cached_media(
+            #                 fileid,
+            #                 caption=reply_text or "",
+            #                 reply_markup=InlineKeyboardMarkup(button)
+            #             )
+            #     except Exception as e:
+            #         logger.exception(e)
+            #     break
     else:
         await auto_filter(client, message, None)
 
@@ -658,6 +659,40 @@ async def cb_handler(client: Client, query: CallbackQuery):
         )
 
 
+async def check_manual_filter(group_id, keyword, message):
+    reply_text, btn, alert, fileid = await find_filter(group_id, keyword)
+
+    if reply_text:
+        reply_text = reply_text.replace("\\n", "\n").replace("\\t", "\t")
+
+    if btn is not None:
+        try:
+            if fileid == "None":
+                if btn == "[]":
+                    await message.reply_text(reply_text, disable_web_page_preview=True)
+                else:
+                    button = eval(btn)
+                    await message.reply_text(
+                        reply_text,
+                        disable_web_page_preview=True,
+                        reply_markup=InlineKeyboardMarkup(button)
+                    )
+            elif btn == "[]":
+                await message.reply_cached_media(
+                    fileid,
+                    caption=reply_text or ""
+                )
+            else:
+                button = eval(btn)
+                await message.reply_cached_media(
+                    fileid,
+                    caption=reply_text or "",
+                    reply_markup=InlineKeyboardMarkup(button)
+                )
+        except Exception as e:
+            logger.exception(e)
+
+
 async def auto_filter(client, msg, k=None, spoll=False):
     if not spoll:
         message = msg
@@ -700,6 +735,13 @@ async def auto_filter(client, msg, k=None, spoll=False):
             if not k is None:
                 movie, files, offset, total_results = k[0], k[1], k[2], k[3]
                 search = movie
+
+                keywords = await get_filters(msg.message.chat.id)
+                for keyword in reversed(sorted(keywords, key=len)):
+                    pattern = r"( |^|[^\w])" + re.escape(keyword) + r"( |$|[^\w])"
+                    if re.search(pattern, search, flags=re.IGNORECASE):
+                        await check_manual_filter(msg.message.chat.id, keyword, msg.message)
+                        return
             else:
                 search = message.text
             files, offset, total_results = await get_search_results(search.lower(), offset=0, filter=True)
@@ -803,6 +845,7 @@ async def auto_filter(client, msg, k=None, spoll=False):
             plot=imdb['plot'],
             rating=imdb['rating'],
             url=imdb['url'],
+            chat=message.chat.title,
             **locals()
         )
     else:

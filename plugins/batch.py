@@ -1,4 +1,3 @@
-import re
 import base64
 import logging
 import asyncio
@@ -12,6 +11,7 @@ from pyrogram import Client, filters
 from pyrogram.errors import FloodWait
 from database.batch_db import save_file
 from plugins.helper_func import get_message_id, encode
+from database.connections_mdb import active_connection
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 logger = logging.getLogger(__name__)
@@ -19,8 +19,43 @@ logger.setLevel(logging.INFO)
 lock = asyncio.Lock()
 
 
-@Bot.on_message(filters.command('batch') & filters.user(ADMINS))
-async def batch_file1(client: Client, message):
+@Bot.on_message(filters.command('batch') & filters.incoming)
+async def batch_file(client: Client, message):
+    userid = message.from_user.id if message.from_user else None
+    if not userid:
+        return await message.reply(f"You are anonymous admin. Use /connect {message.chat.id} in PM")
+    chat_type = message.chat.type
+    args = message.text.html.split(None, 1)
+
+    if chat_type == "private":
+        grpid = await active_connection(str(userid))
+        if grpid is not None:
+            grp_id = grpid
+            try:
+                chat = await client.get_chat(grpid)
+                title = chat.title
+            except:
+                await message.reply_text("Make sure I'm present in your group!!", quote=True)
+                return
+        else:
+            await message.reply_text("I'm not connected to any groups!", quote=True)
+            return
+
+    elif chat_type in ["group", "supergroup"]:
+        grp_id = message.chat.id
+        title = message.chat.title
+
+    else:
+        return
+
+    st = await client.get_chat_member(grp_id, userid)
+    if (
+            st.status != "administrator"
+            and st.status != "creator"
+            and str(userid) not in ADMINS
+    ):
+        return
+
     while True:
         try:
             first_message = await client.ask(text="Forward the First Message from DB Channel (with Quotes)..\n\n"
@@ -64,12 +99,12 @@ async def batch_file1(client: Client, message):
             if s_msg_id:
                 break
             else:
-                await second_message.reply("❌ Error\n\nthis Forwarded Post is not from my DB Channel or this "
-                                           "Link is taken from DB Channel", quote=True)
+                await second_message.reply("❌ Error\n\nThis Forwarded Post Is Not From My DB Channel Or This "
+                                           "Link Is Not Taken From DB Channel", quote=True)
                 continue
         else:
-            await second_message.reply("❌ Error\n\nthis Forwarded Post is not from my first forwarded Channel or this "
-                                       "Link is taken from DB Channel", quote=True)
+            await second_message.reply("❌ Error\n\nthis Forwarded Post Is Not From My First Forwarded Channel Or This "
+                                       "Link Is Taken From DB Channel", quote=True)
 
     string = f"get-{f_msg_id}-{s_msg_id}-{abs(second_channel_id)}"
     base64_string = await encode(string)
