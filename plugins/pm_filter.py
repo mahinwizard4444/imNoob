@@ -740,7 +740,8 @@ async def auto_filter(client, msg, k=None, spoll=False):
                 for keyword in reversed(sorted(keywords, key=len)):
                     pattern = r"( |^|[^\w])" + re.escape(keyword) + r"( |$|[^\w])"
                     if re.search(pattern, search, flags=re.IGNORECASE):
-                        await check_manual_filter(msg.message.chat.id, keyword, msg.message)
+                        await check_manual_filter(msg.message.chat.id, keyword, msg.message.reply_to_message)
+                        await msg.message.delete()
                         return
             else:
                 search = message.text
