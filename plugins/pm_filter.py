@@ -71,7 +71,7 @@ async def give_filter(client, message):
             #         logger.exception(e)
             #     break
     else:
-        await auto_filter(client, message, None)
+        await auto_filter(client, message)
 
 
 @Client.on_callback_query(filters.regex(r"^next"))
@@ -693,58 +693,14 @@ async def check_manual_filter(group_id, keyword, message):
             logger.exception(e)
 
 
-async def auto_filter(client, msg, k=None, spoll=False):
+async def auto_filter(client, msg, spoll=False):
     if not spoll:
         message = msg
-        if not k is None:
-            movie, files, offset, total_results = k[0], k[1], k[2], k[3]
-            search = movie
-            if re.findall("((^\/|^,|^!|^\.|^[\U0001F600-\U000E007F]).*)", search):
-                return
-        else:
-            if re.findall("((^\/|^,|^!|^\.|^[\U0001F600-\U000E007F]).*)", message.text):
-                return
+        if re.findall("((^\/|^,|^!|^\.|^[\U0001F600-\U000E007F]).*)", message.text):
+            return
 
-        if k is None:
-            if 2 < len(message.text) < 100:
-                if not k is None:
-                    movie, files, offset, total_results = k[0], k[1], k[2], k[3]
-                    search = movie
-                else:
-                    search = message.text
-                files, offset, total_results = await get_search_results(search.lower(), offset=0, filter=True)
-                if not files:
-                    if SPELL_CHECK_REPLY:
-                        return await advantage_spell_chok(client, msg)
-                    else:
-                        Send_message = await client.send_video(
-                            chat_id=msg.chat.id,
-                            video="https://telegra.ph/file/3e9f7db0c98e6b236c2c7.mp4",
-                            caption=f"Couldn't Find This Movie.Please Try Again Or Search On Our "
-                                    f"<b><a href='https://t.me/UFSNewReleased'>Channel</a></b>. \n\n"
-                                    f"ഈ സിനിമയുടെ ഒറിജിനൽ പേര് ഗൂഗിളിൽ പോയി കണ്ടെത്തി അതുപോലെ ഇവിടെ കൊടുക്കുക 🥺",
-                            parse_mode="html",
-                            reply_to_message_id=msg.message_id
-                        )
-                        await asyncio.sleep(15)  # in seconds
-                        await Send_message.delete()
-                        return
-            else:
-                return
-        elif 2 < len(search) < 100:
-            if not k is None:
-                movie, files, offset, total_results = k[0], k[1], k[2], k[3]
-                search = movie
-
-                keywords = await get_filters(msg.message.chat.id)
-                for keyword in reversed(sorted(keywords, key=len)):
-                    pattern = r"( |^|[^\w])" + re.escape(keyword) + r"( |$|[^\w])"
-                    if re.search(pattern, search, flags=re.IGNORECASE):
-                        await check_manual_filter(msg.message.chat.id, keyword, msg.message.reply_to_message)
-                        await msg.message.delete()
-                        return
-            else:
-                search = message.text
+        if 2 < len(message.text) < 100:
+            search = message.text
             files, offset, total_results = await get_search_results(search.lower(), offset=0, filter=True)
             if not files:
                 if SPELL_CHECK_REPLY:
@@ -767,6 +723,13 @@ async def auto_filter(client, msg, k=None, spoll=False):
     else:
         message = msg.message.reply_to_message  # msg will be callback query
         search, files, offset, total_results = spoll
+        keywords = await get_filters(msg.message.chat.id)
+        for keyword in reversed(sorted(keywords, key=len)):
+            pattern = r"( |^|[^\w])" + re.escape(keyword) + r"( |$|[^\w])"
+            if re.search(pattern, search, flags=re.IGNORECASE):
+                await check_manual_filter(message.chat.id, keyword, message)
+                await msg.message.delete()
+                return
 
     if SINGLE_BUTTON:
         btn = [
@@ -793,10 +756,7 @@ async def auto_filter(client, msg, k=None, spoll=False):
         ]
 
     if offset != "":
-        if not k is None:
-            key = f"{message.message.chat.id}-{message.message.message_id}"
-        else:
-            key = f"{message.chat.id}-{message.message_id}"
+        key = f"{message.chat.id}-{message.message_id}"
         BUTTONS[key] = search
         req = message.from_user.id if message.from_user else 0
         btn.append(
@@ -862,35 +822,6 @@ async def auto_filter(client, msg, k=None, spoll=False):
         except Exception as e:
             logger.exception(e)
             # await message.reply_text(cap, reply_markup=InlineKeyboardMarkup(btn))
-            if not k is None:
-                await client.send_photo(
-                    chat_id=msg.message.chat.id,
-                    photo=random.choice(PICS),
-                    caption=cap,
-                    reply_markup=InlineKeyboardMarkup(btn),
-                    parse_mode="html",
-                    reply_to_message_id=msg.message.reply_to_message.message_id)
-                await msg.message.delete()
-            else:
-                await client.send_photo(
-                    chat_id=msg.chat.id,
-                    photo=random.choice(PICS),
-                    caption=cap,
-                    reply_markup=InlineKeyboardMarkup(btn),
-                    parse_mode="html",
-                    reply_to_message_id=msg.message_id)
-    else:
-        # await message.reply_text(cap, reply_markup=InlineKeyboardMarkup(btn))
-        if not k is None:
-            await client.send_photo(
-                chat_id=msg.message.chat.id,
-                photo=random.choice(PICS),
-                caption=cap,
-                reply_markup=InlineKeyboardMarkup(btn),
-                parse_mode="html",
-                reply_to_message_id=msg.message.reply_to_message.message_id)
-            await msg.message.delete()
-        else:
             await client.send_photo(
                 chat_id=msg.chat.id,
                 photo=random.choice(PICS),
@@ -898,6 +829,15 @@ async def auto_filter(client, msg, k=None, spoll=False):
                 reply_markup=InlineKeyboardMarkup(btn),
                 parse_mode="html",
                 reply_to_message_id=msg.message_id)
+    else:
+        # await message.reply_text(cap, reply_markup=InlineKeyboardMarkup(btn))
+        await client.send_photo(
+            chat_id=msg.chat.id,
+            photo=random.choice(PICS),
+            caption=cap,
+            reply_markup=InlineKeyboardMarkup(btn),
+            parse_mode="html",
+            reply_to_message_id=msg.message_id)
     if spoll:
         await msg.message.delete()
 
@@ -967,17 +907,54 @@ async def advantage_spell_chok(client, msg):
         # await k.delete()
         return
     SPELL_CHECK[msg.message_id] = movielist
+    i = 1
+    pre_len = {}
+    btn = []
+    movielist.sort(key=len)
+    for k, movie in enumerate(movielist):
+        text = movie.strip()  # args[2]
+        same = False
+        if (i % 2) == 0:
+            if len(text) > 10 or len(str(pre_len["text_len"])) > 10:
+                same = False
+            else:
+                same = True
+        else:
+            pre_len["text_len"] = len(text)
+            same = False
 
-    btn = [[
-                   InlineKeyboardButton(
-                       text=movie.strip(),
-                       callback_data=f"spolling#{user}#{k}",
-                   )
-               ] for k, movie in enumerate(movielist)]
-    btn.append([InlineKeyboardButton(text="Close", callback_data=f'spolling#{user}#close_spellcheck')])
+        i += 1
+
+        btn.append([text, f"spolling#{user}#{k}", same])
+
+    btn.append(["❌ Close", f'spolling#{user}#close_spellcheck', False])
+    btn = build_keyboard(btn)
     btn.insert(0, [
         InlineKeyboardButton("⭕️ ᴘᴍ ᴍᴇ ⭕️", url="https://t.me/UFSChatBot"),
         InlineKeyboardButton("⚜ ɴᴇᴡ ᴍᴏᴠɪᴇs ⚜", url="https://t.me/UFSNewReleased")
     ])
+
+    # btn = [[
+    #                InlineKeyboardButton(
+    #                    text=movie.strip(),
+    #                    callback_data=f"spolling#{user}#{k}",
+    #                )
+    #            ] for k, movie in enumerate(movielist)]
+    # btn.append([InlineKeyboardButton(text="Close", callback_data=f'spolling#{user}#close_spellcheck')])
+    # btn.insert(0, [
+    #     InlineKeyboardButton("⭕️ ᴘᴍ ᴍᴇ ⭕️", url="https://t.me/UFSChatBot"),
+    #     InlineKeyboardButton("⚜ ɴᴇᴡ ᴍᴏᴠɪᴇs ⚜", url="https://t.me/UFSNewReleased")
+    # ])
     await msg.reply("I Couldn't Find Anything Related To That\nDid You Mean Any One Of These 👇🏻?",
                     reply_markup=InlineKeyboardMarkup(btn))
+
+
+def build_keyboard(buttons):
+    keyb = []
+    for btn in buttons:
+        if btn[2] and keyb:
+            keyb[-1].append(InlineKeyboardButton(btn[0], callback_data=btn[1]))
+        else:
+            keyb.append([InlineKeyboardButton(btn[0], callback_data=btn[1])])
+
+    return keyb
