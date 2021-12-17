@@ -910,7 +910,7 @@ async def advantage_spell_chok(client, msg):
     i = 1
     pre_len = {}
     btn = []
-    movielist.sort(key=len)
+    # movielist.sort(key=len)
     for k, movie in enumerate(movielist):
         text = movie.strip()  # args[2]
         same = False
