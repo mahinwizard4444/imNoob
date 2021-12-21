@@ -665,16 +665,16 @@ async def check_manual_filter(group_id, keyword, message):
     if reply_text:
         reply_text = reply_text.replace("\\n", "\n").replace("\\t", "\t")
 
-    reply_text = reply_text + "\n\n<b>Aᴜᴛᴏᴍᴀᴛɪᴄᴀʟʟʏ Dᴇʟᴇᴛᴇ Tʜɪs Rᴇϙᴜᴇsᴛ Aғᴛᴇʀ 2 Mɪɴᴜᴛᴇs</b>"
+    # reply_text = reply_text + "\n\n<b>Aᴜᴛᴏᴍᴀᴛɪᴄᴀʟʟʏ Dᴇʟᴇᴛᴇ Tʜɪs Rᴇϙᴜᴇsᴛ Aғᴛᴇʀ 2 Mɪɴᴜᴛᴇs</b>"
 
     if btn is not None:
         try:
             if fileid == "None":
                 if btn == "[]":
                     d_msg = await message.reply_text(reply_text, disable_web_page_preview=True)
-                    await asyncio.sleep(120)
-                    await message.delete()
-                    await d_msg.delete()
+                    # await asyncio.sleep(120)
+                    # await message.delete()
+                    # await d_msg.delete()
                 else:
                     button = eval(btn)
                     d_msg = await message.reply_text(
@@ -682,17 +682,17 @@ async def check_manual_filter(group_id, keyword, message):
                         disable_web_page_preview=True,
                         reply_markup=InlineKeyboardMarkup(button)
                     )
-                    await asyncio.sleep(120)
-                    await message.delete()
-                    await d_msg.delete()
+                    # await asyncio.sleep(120)
+                    # await message.delete()
+                    # await d_msg.delete()
             elif btn == "[]":
                 d_msg = await message.reply_cached_media(
                     fileid,
                     caption=reply_text or ""
                 )
-                await asyncio.sleep(120)
-                await message.delete()
-                await d_msg.delete()
+                # await asyncio.sleep(120)
+                # await message.delete()
+                # await d_msg.delete()
             else:
                 button = eval(btn)
                 d_msg = await message.reply_cached_media(
@@ -700,9 +700,9 @@ async def check_manual_filter(group_id, keyword, message):
                     caption=reply_text or "",
                     reply_markup=InlineKeyboardMarkup(button)
                 )
-                await asyncio.sleep(120)
-                await message.delete()
-                await d_msg.delete()
+                # await asyncio.sleep(120)
+                # await message.delete()
+                # await d_msg.delete()
         except Exception as e:
             logger.exception(e)
 
@@ -789,8 +789,8 @@ async def auto_filter(client, msg, spoll=False):
     imdb = await get_poster(search, file=(files[0]).file_name) if IMDB else None
     query_by = f"<b>ɴᴏ ᴏғ ғɪʟᴇs :</b> <code><b><i>{total_results}</i></b></code>\n"\
                f"<b>ʏᴏᴜʀ ϙᴜᴇʀʏ :</b> <code><b><i>{search}</i></b></code>\n"\
-               f"<b>ʀᴇϙᴜᴇsᴛᴇᴅ ʙʏ :</b> <b><code>{msg.from_user.first_name}</code></b>\n\n" \
-               f"<b>Aᴜᴛᴏᴍᴀᴛɪᴄᴀʟʟʏ Dᴇʟᴇᴛᴇ Tʜɪs Rᴇϙᴜᴇsᴛ Aғᴛᴇʀ 2 Mɪɴᴜᴛᴇs</b>"
+               f"<b>ʀᴇϙᴜᴇsᴛᴇᴅ ʙʏ :</b> <b><code>{msg.from_user.first_name}</code></b>\n\n" #\
+               # f"<b>Aᴜᴛᴏᴍᴀᴛɪᴄᴀʟʟʏ Dᴇʟᴇᴛᴇ Tʜɪs Rᴇϙᴜᴇsᴛ Aғᴛᴇʀ 2 Mɪɴᴜᴛᴇs</b>"
     if imdb:
         cap = IMDB_TEMPLATE.format(
             query=query_by,
@@ -830,16 +830,16 @@ async def auto_filter(client, msg, spoll=False):
     if imdb and imdb.get('poster'):
         try:
             d_msg = await message.reply_photo(photo=imdb.get('poster'), caption=cap, reply_markup=InlineKeyboardMarkup(btn))
-            await asyncio.sleep(120)
-            await message.delete()
-            await d_msg.delete()
+            # await asyncio.sleep(120)
+            # await message.delete()
+            # await d_msg.delete()
         except (MediaEmpty, PhotoInvalidDimensions, WebpageMediaEmpty):
             pic = imdb.get('poster')
             poster = pic.replace('.jpg', "._V1_UX360.jpg")
             d_msg = await message.reply_photo(photo=poster, caption=cap, reply_markup=InlineKeyboardMarkup(btn))
-            await asyncio.sleep(120)
-            await message.delete()
-            await d_msg.delete()
+            # await asyncio.sleep(120)
+            # await message.delete()
+            # await d_msg.delete()
         except Exception as e:
             logger.exception(e)
             # await message.reply_text(cap, reply_markup=InlineKeyboardMarkup(btn))
@@ -850,9 +850,9 @@ async def auto_filter(client, msg, spoll=False):
                 reply_markup=InlineKeyboardMarkup(btn),
                 parse_mode="html",
                 reply_to_message_id=msg.message_id)
-            await asyncio.sleep(120)
-            await message.delete()
-            await d_msg.delete()
+            # await asyncio.sleep(120)
+            # await message.delete()
+            # await d_msg.delete()
     else:
         # await message.reply_text(cap, reply_markup=InlineKeyboardMarkup(btn))
         d_msg = await client.send_photo(
@@ -862,9 +862,9 @@ async def auto_filter(client, msg, spoll=False):
             reply_markup=InlineKeyboardMarkup(btn),
             parse_mode="html",
             reply_to_message_id=msg.message_id)
-        await asyncio.sleep(120)
-        await message.delete()
-        await d_msg.delete()
+        # await asyncio.sleep(120)
+        # await message.delete()
+        # await d_msg.delete()
     if spoll:
         await msg.message.delete()
 
