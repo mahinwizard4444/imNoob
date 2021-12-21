@@ -815,32 +815,38 @@ async def auto_filter(client, msg, spoll=False):
 
     if imdb and imdb.get('poster'):
         try:
-            await message.reply_photo(photo=imdb.get('poster'), caption=cap, reply_markup=InlineKeyboardMarkup(btn), ttl_seconds=120)
+            d_msg = await message.reply_photo(photo=imdb.get('poster'), caption=cap, reply_markup=InlineKeyboardMarkup(btn))
+            await asyncio.sleep(120)
+            await d_msg.delete()
         except (MediaEmpty, PhotoInvalidDimensions, WebpageMediaEmpty):
             pic = imdb.get('poster')
             poster = pic.replace('.jpg', "._V1_UX360.jpg")
-            await message.reply_photo(photo=poster, caption=cap, reply_markup=InlineKeyboardMarkup(btn), ttl_seconds=120)
+            d_msg = await message.reply_photo(photo=poster, caption=cap, reply_markup=InlineKeyboardMarkup(btn))
+            await asyncio.sleep(120)
+            await d_msg.delete()
         except Exception as e:
             logger.exception(e)
             # await message.reply_text(cap, reply_markup=InlineKeyboardMarkup(btn))
-            await client.send_photo(
+            d_msg = await client.send_photo(
                 chat_id=msg.chat.id,
                 photo=random.choice(PICS),
                 caption=cap,
                 reply_markup=InlineKeyboardMarkup(btn),
                 parse_mode="html",
-                ttl_seconds=120,
                 reply_to_message_id=msg.message_id)
+            await asyncio.sleep(120)
+            await d_msg.delete()
     else:
         # await message.reply_text(cap, reply_markup=InlineKeyboardMarkup(btn))
-        await client.send_photo(
+        d_msg = await client.send_photo(
             chat_id=msg.chat.id,
             photo=random.choice(PICS),
             caption=cap,
             reply_markup=InlineKeyboardMarkup(btn),
             parse_mode="html",
-            ttl_seconds=120,
             reply_to_message_id=msg.message_id)
+        await asyncio.sleep(120)
+        await d_msg.delete()
     if spoll:
         await msg.message.delete()
 
