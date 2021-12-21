@@ -774,8 +774,9 @@ async def auto_filter(client, msg, spoll=False):
     ])
     imdb = await get_poster(search, file=(files[0]).file_name) if IMDB else None
     query_by = f"<b>ɴᴏ ᴏғ ғɪʟᴇs :</b> <code><b><i>{total_results}</i></b></code>\n"\
-          f"<b>ʏᴏᴜʀ ϙᴜᴇʀʏ :</b> <code><b><i>{search}</i></b></code>\n"\
-          f"<b>ʀᴇϙᴜᴇsᴛᴇᴅ ʙʏ :</b> <b><code>{msg.from_user.first_name}</code></b>"
+               f"<b>ʏᴏᴜʀ ϙᴜᴇʀʏ :</b> <code><b><i>{search}</i></b></code>\n"\
+               f"<b>ʀᴇϙᴜᴇsᴛᴇᴅ ʙʏ :</b> <b><code>{msg.from_user.first_name}</code></b>\n\n" \
+               f"<b>Aᴜᴛᴏᴍᴀᴛɪᴄᴀʟʟʏ Dᴇʟᴇᴛᴇ Tʜɪs Rᴇϙᴜᴇsᴛ Aғᴛᴇʀ 2 Mɪɴᴜᴛᴇs</b>"
     if imdb:
         cap = IMDB_TEMPLATE.format(
             query=query_by,
@@ -814,11 +815,11 @@ async def auto_filter(client, msg, spoll=False):
 
     if imdb and imdb.get('poster'):
         try:
-            await message.reply_photo(photo=imdb.get('poster'), caption=cap, reply_markup=InlineKeyboardMarkup(btn))
+            await message.reply_photo(photo=imdb.get('poster'), caption=cap, reply_markup=InlineKeyboardMarkup(btn), ttl_seconds=120)
         except (MediaEmpty, PhotoInvalidDimensions, WebpageMediaEmpty):
             pic = imdb.get('poster')
             poster = pic.replace('.jpg', "._V1_UX360.jpg")
-            await message.reply_photo(photo=poster, caption=cap, reply_markup=InlineKeyboardMarkup(btn))
+            await message.reply_photo(photo=poster, caption=cap, reply_markup=InlineKeyboardMarkup(btn), ttl_seconds=120)
         except Exception as e:
             logger.exception(e)
             # await message.reply_text(cap, reply_markup=InlineKeyboardMarkup(btn))
@@ -828,6 +829,7 @@ async def auto_filter(client, msg, spoll=False):
                 caption=cap,
                 reply_markup=InlineKeyboardMarkup(btn),
                 parse_mode="html",
+                ttl_seconds=120,
                 reply_to_message_id=msg.message_id)
     else:
         # await message.reply_text(cap, reply_markup=InlineKeyboardMarkup(btn))
@@ -837,6 +839,7 @@ async def auto_filter(client, msg, spoll=False):
             caption=cap,
             reply_markup=InlineKeyboardMarkup(btn),
             parse_mode="html",
+            ttl_seconds=120,
             reply_to_message_id=msg.message_id)
     if spoll:
         await msg.message.delete()
