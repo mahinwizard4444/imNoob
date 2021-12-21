@@ -665,30 +665,44 @@ async def check_manual_filter(group_id, keyword, message):
     if reply_text:
         reply_text = reply_text.replace("\\n", "\n").replace("\\t", "\t")
 
+    reply_text = reply_text + "\n\n<b>Aᴜᴛᴏᴍᴀᴛɪᴄᴀʟʟʏ Dᴇʟᴇᴛᴇ Tʜɪs Rᴇϙᴜᴇsᴛ Aғᴛᴇʀ 2 Mɪɴᴜᴛᴇs</b>"
+
     if btn is not None:
         try:
             if fileid == "None":
                 if btn == "[]":
-                    await message.reply_text(reply_text, disable_web_page_preview=True)
+                    d_msg = await message.reply_text(reply_text, disable_web_page_preview=True)
+                    await asyncio.sleep(120)
+                    await message.delete()
+                    await d_msg.delete()
                 else:
                     button = eval(btn)
-                    await message.reply_text(
+                    d_msg = await message.reply_text(
                         reply_text,
                         disable_web_page_preview=True,
                         reply_markup=InlineKeyboardMarkup(button)
                     )
+                    await asyncio.sleep(120)
+                    await message.delete()
+                    await d_msg.delete()
             elif btn == "[]":
-                await message.reply_cached_media(
+                d_msg = await message.reply_cached_media(
                     fileid,
                     caption=reply_text or ""
                 )
+                await asyncio.sleep(120)
+                await message.delete()
+                await d_msg.delete()
             else:
                 button = eval(btn)
-                await message.reply_cached_media(
+                d_msg = await message.reply_cached_media(
                     fileid,
                     caption=reply_text or "",
                     reply_markup=InlineKeyboardMarkup(button)
                 )
+                await asyncio.sleep(120)
+                await message.delete()
+                await d_msg.delete()
         except Exception as e:
             logger.exception(e)
 
@@ -817,12 +831,14 @@ async def auto_filter(client, msg, spoll=False):
         try:
             d_msg = await message.reply_photo(photo=imdb.get('poster'), caption=cap, reply_markup=InlineKeyboardMarkup(btn))
             await asyncio.sleep(120)
+            await message.delete()
             await d_msg.delete()
         except (MediaEmpty, PhotoInvalidDimensions, WebpageMediaEmpty):
             pic = imdb.get('poster')
             poster = pic.replace('.jpg', "._V1_UX360.jpg")
             d_msg = await message.reply_photo(photo=poster, caption=cap, reply_markup=InlineKeyboardMarkup(btn))
             await asyncio.sleep(120)
+            await message.delete()
             await d_msg.delete()
         except Exception as e:
             logger.exception(e)
@@ -835,6 +851,7 @@ async def auto_filter(client, msg, spoll=False):
                 parse_mode="html",
                 reply_to_message_id=msg.message_id)
             await asyncio.sleep(120)
+            await message.delete()
             await d_msg.delete()
     else:
         # await message.reply_text(cap, reply_markup=InlineKeyboardMarkup(btn))
@@ -846,6 +863,7 @@ async def auto_filter(client, msg, spoll=False):
             parse_mode="html",
             reply_to_message_id=msg.message_id)
         await asyncio.sleep(120)
+        await message.delete()
         await d_msg.delete()
     if spoll:
         await msg.message.delete()
