@@ -40,6 +40,7 @@ async def getmedia(client, update):
 
     await update.delete()
     try:
+        await org_message.reply_chat_action("typing...")
         message = await org_message.reply_text(
             text="`⏳ Please Wait...`",
             quote=True,
