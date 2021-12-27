@@ -4,8 +4,10 @@ import base64
 import re
 import asyncio
 from pyrogram import filters
+from pyrogram.types import Message
 from pyrogram.errors.exceptions.bad_request_400 import UserNotParticipant
 from pyrogram.errors import FloodWait
+from pyrogram.types.messages_and_media import message
 
 
 async def encode(string):
@@ -69,3 +71,26 @@ async def get_message_id(client, message, fwd_channel_id):
                 return msg_id
     else:
         return 0
+
+
+def get_file_id(msg: Message):
+    if msg.media:
+        for message_type in (
+            "photo",
+            "animation",
+            "audio",
+            "document",
+            "video",
+            "video_note",
+            "voice",
+            # "contact",
+            # "dice",
+            # "poll",
+            # "location",
+            # "venue",
+            "sticker"
+        ):
+            obj = getattr(msg, message_type)
+            if obj:
+                setattr(obj, "message_type", message_type)
+                return obj
