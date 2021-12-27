@@ -12,28 +12,28 @@ TMP_DOWNLOAD_DIRECTORY = "./UFSBotz/"
 
 @Client.on_message(filters.command("telegraph") & filters.private)
 async def getmedia(client, update):
-    if not await is_subscribed(client, update):
-        try:
-            invite_link = await client.create_chat_invite_link("UFSBotz")
-        except ChatAdminRequired:
-            print("Make Sure Bot Is Admin In Force Sub Channel")
-            return
-        btn = [
-            [
-                InlineKeyboardButton(
-                    "🤖 Join Updates Channel", url=invite_link.invite_link
-                )
-            ]
-        ]
-        await client.send_message(
-            chat_id=update.from_user.id,
-            text="**Iғ Yᴏᴜ Wᴀɴᴛ Tᴏ Usᴇ Tʜɪs Bᴏᴛ, Yᴏᴜ Mᴜsᴛ Jᴏɪɴ Tʜᴇ Cʜᴀɴɴᴇʟ.\n"
-                 "Because I Am Providing You Completely Free To Use The Bot\n\n"
-                 "Please Join My Updates Channel To Use This Bot!**",
-            reply_markup=InlineKeyboardMarkup(btn),
-            parse_mode="markdown"
-        )
-        return
+    # if not await is_subscribed(client, update):
+    #     try:
+    #         invite_link = await client.create_chat_invite_link("UFSBotz")
+    #     except ChatAdminRequired:
+    #         print("Make Sure Bot Is Admin In Force Sub Channel")
+    #         return
+    #     btn = [
+    #         [
+    #             InlineKeyboardButton(
+    #                 "🤖 Join Updates Channel", url=invite_link.invite_link
+    #             )
+    #         ]
+    #     ]
+    #     await client.send_message(
+    #         chat_id=update.from_user.id,
+    #         text="**Iғ Yᴏᴜ Wᴀɴᴛ Tᴏ Usᴇ Tʜɪs Bᴏᴛ, Yᴏᴜ Mᴜsᴛ Jᴏɪɴ Tʜᴇ Cʜᴀɴɴᴇʟ.\n"
+    #              "Because I Am Providing You Completely Free To Use The Bot\n\n"
+    #              "Please Join My Updates Channel To Use This Bot!**",
+    #         reply_markup=InlineKeyboardMarkup(btn),
+    #         parse_mode="markdown"
+    #     )
+    #     return
 
     org_message = update.reply_to_message
     medianame = TMP_DOWNLOAD_DIRECTORY + str(org_message.from_user.id)
