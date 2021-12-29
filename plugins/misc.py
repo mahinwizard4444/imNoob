@@ -1,13 +1,24 @@
+import asyncio
 import os
-from pyrogram import Client, filters
-from pyrogram.errors.exceptions.bad_request_400 import UserNotParticipant, MediaEmpty, PhotoInvalidDimensions, \
-    WebpageMediaEmpty
-from info import IMDB_TEMPLATE
-from utils import extract_user, get_file_id, get_poster, last_online
 import time
+import aiohttp
+import logging
+import requests
+import traceback
+import pyperclip
+
+from gtts import gTTS
+from io import BytesIO
+from typing import List, Dict
+from googletrans import Translator
+from pyrogram import Client, filters
+from asyncio import get_running_loop
+from info import IMDB_TEMPLATE, SHORT_LINK_API_KEY
+from utils import extract_user, get_file_id, get_poster, last_online
 from datetime import datetime
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
-import logging
+from pyrogram.errors.exceptions.bad_request_400 import UserNotParticipant, MediaEmpty, PhotoInvalidDimensions, \
+    WebpageMediaEmpty
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.ERROR)
@@ -216,3 +227,191 @@ async def imdb_callback(bot: Client, query: CallbackQuery):
     else:
         await query.message.edit(caption, reply_markup=InlineKeyboardMarkup(btn), disable_web_page_preview=False)
     await query.answer()
+
+
+@Client.on_message(filters.command(["speech"]))
+async def text_to_speech(_, message):
+    if not message.reply_to_message:
+        return await message.reply_text("💡 Reply To Some Texts !")
+    if not message.reply_to_message.text:
+        return await message.reply_text("💡 Reply To Some Texts !")
+    m = await message.reply_text("Processing...😌")
+    text = message.reply_to_message.text
+    try:
+        loop = get_running_loop()
+        audio = await loop.run_in_executor(None, convert, text)
+        await message.reply_audio(audio)
+        await m.delete()
+        audio.close()
+    except Exception as e:
+        await m.edit(str(e))
+        es = traceback.format_exc()
+        print(es)
+
+
+@Client.on_message(filters.command(["tr"]))
+async def lang_translate(client, message):
+    if message.reply_to_message:
+        try:
+            lgcd = message.text.split("/tr")
+            lg_cd = lgcd[1].lower().replace(" ", "")
+            tr_text = message.reply_to_message.text
+            translator = Translator()
+            translation = translator.translate(tr_text, dest=lg_cd)
+            hehek = InlineKeyboardMarkup(
+                [
+                    [
+                        InlineKeyboardButton(
+                            "Lᴀɴɢᴜᴀɢᴇ Cᴏᴅᴇs", url="https://cloud.google.com/translate/docs/languages"
+                        )
+                    ],
+                    [
+                        InlineKeyboardButton(
+                            "✗ Cʟᴏsᴇ Tʜɪs Tʀᴀɴsʟᴀᴛᴇ ✗", callback_data="close_data"
+                        )
+                    ],
+                ]
+            )
+            try:
+                for i in list:
+                    if list[i] == translation.src:
+                        fromt = i
+                    if list[i] == translation.dest:
+                        to = i
+                await message.reply_text(
+                    f"Translated From **{fromt.capitalize()}** To **{to.capitalize()}**\n\n```{translation.text}```",
+                    reply_markup=hehek, quote=True)
+            except:
+                await message.reply_text(
+                    f"Translated from **{translation.src}** To **{translation.dest}**\n\n```{translation.text}```",
+                    reply_markup=hehek, quote=True)
+
+
+        except:
+            print("error")
+    else:
+        ms = await message.reply_text("You Can Use This Command By using Reply To Message.\n\nEx:- /tr ml")
+        await asyncio.sleep(3)
+        await ms.delete()
+
+
+@Client.on_message(filters.command("paste") & ~filters.edited)
+async def paste_func(_, message):
+    global content
+    if not message.reply_to_message:
+        return await message.reply("Reply To A Message With /paste")
+    r = message.reply_to_message
+
+    if not r.text and not r.document:
+        return await message.reply("Only Text And Documents Are Supported.")
+
+    m = await message.reply("Pasting...")
+    await asyncio.sleep(2)
+
+    if r.text:
+        content = r.text
+    elif r.document:
+        p_file = await r.download()
+        content = open(p_file, "r").read()
+        os.remove(p_file)
+
+    # link, rawlink = await paste(content)
+    # s_link, s_rawlink = await spaste(content)
+    # kb = InlineKeyboardMarkup(
+    #     [[InlineKeyboardButton("PasteBin", url=link), InlineKeyboardButton("SpaceBin", url=s_link)]])
+    # await message.reply_text(
+    #     f"**Pasted!**\nPasteBin: [Here]({rawlink})\nSpaceBin: [Here]({s_rawlink})",
+    #     quote=True,
+    #     reply_markup=kb,
+    # )
+    await message.reply_text(
+        f"**Pasted!**\n{pyperclip.paste()}",
+        quote=True,
+    )
+    await m.delete()
+
+
+@Client.on_message(filters.regex(r'https?://[^\s]+') & filters.private)
+async def link_handler(bot, message):
+    link = message.matches[0].group(0)
+    try:
+        short_link = await get_shortlink(link)
+        await message.reply(f'Here Is Your [Short Link] 👉🏻 {short_link}', quote=True)
+    except Exception as e:
+        await message.reply(f'Error: {e}', quote=True)
+
+
+async def get_shortlink(link):
+    url = 'https://gplinks.in/api'
+    params = {'api': SHORT_LINK_API_KEY, 'url': link}
+
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url, params=params, raise_for_status=True) as response:
+            data = await response.json()
+            return data["shortenedUrl"]
+
+
+def convert(text):
+    audio = BytesIO()
+    i = Translator().translate(text, dest="en")
+    lang = i.src
+    tts = gTTS(text, lang=lang)
+    audio.name = lang + ".ogg"
+    tts.write_to_fp(audio)
+    return audio
+
+
+async def spaste(content: str):
+    siteurl = "https://spaceb.in/api/v1/documents/"
+    try:
+        resp = requests.post(siteurl, data={"content": content, "extension": "py"})
+        response = resp.json()
+        link = f"https://spaceb.in/{response['payload']['id']}"
+        rawlink = f"{siteurl}{response['payload']['id']}/raw"
+
+        # useragent = ('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
+        #              'Chrome/92.0.4515.107 Safari/537.36 Edg/92.0.902.62'
+        #              )
+        # header = {
+        #     "User-Agent": useragent,
+        # }
+        # t_resp = requests.get(rawlink, headers=header)
+        # t_response = t_resp.json()
+        return link, rawlink
+    except Exception as e:
+        print(e)
+        return None
+
+
+def paginate_modules(page_n: int, module_dict: Dict, prefix, chat=None) -> List:
+    if not chat:
+        modules = sorted(
+            [EqInlineKeyboardButton(x.__mod_name__,
+                                    callback_data="{}_module({})".format(prefix, x.__mod_name__.lower())) for x
+             in module_dict.values()])
+    else:
+        modules = sorted(
+            [EqInlineKeyboardButton(x.__mod_name__,
+                                    callback_data="{}_module({},{})".format(prefix, chat, x.__mod_name__.lower())) for x
+             in module_dict.values()])
+
+    pairs = [modules[i * 3: (i + 1) * 3] for i in range((len(modules) + 3 - 1) // 3)]
+    round_num = len(modules) / 3
+    calc = len(modules) - round(round_num)
+    if calc == 1:
+        pairs.append((modules[-1],))
+    elif calc == 2:
+        pairs.append((modules[-1],))
+
+    return pairs
+
+
+class EqInlineKeyboardButton(InlineKeyboardButton):
+    def __eq__(self, other):
+        return self.text == other.text
+
+    def __lt__(self, other):
+        return self.text < other.text
+
+    def __gt__(self, other):
+        return self.text > other.text

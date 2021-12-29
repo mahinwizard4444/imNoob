@@ -197,3 +197,13 @@ async def index_files_to_db(lst_msg_id, chat, msg, bot):
             await msg.edit(f'Error: {e}')
         else:
             await msg.edit(f'Sᴜᴄᴄᴇssғᴜʟʟʏ Sᴀᴠᴇᴅ <code>{total_files}</code> Tᴏ DᴀᴛᴀBᴀsᴇ!\nDᴜᴘʟɪᴄᴀᴛᴇ Fɪʟᴇs Sᴋɪᴘᴘᴇᴅ: <code>{duplicate}</code>\nDᴇʟᴇᴛᴇᴅ Mᴇssᴀɢᴇs Sᴋɪᴘᴘᴇᴅ: <code>{deleted}</code>\nNᴏɴ-Mᴇᴅɪᴀ Mᴇssᴀɢᴇs Sᴋɪᴘᴘᴇᴅ: <code>{no_media}</code>\nEʀʀᴏʀs Oᴄᴄᴜʀᴇᴅ: <code>{errors}</code>')
+
+
+__help__ = """
+*Admin only:*
+ - /index: Index Your Channel Files To My DB  
+ - /setskip: Set Skip Your Messages For Indexing.
+ 
+"""
+
+__mod_name__ = "Index"

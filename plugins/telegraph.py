@@ -1,13 +1,12 @@
 import asyncio
 import os
 import shutil
+
+from info import *
 from pyrogram import Client, filters
 from telegraph import upload_file
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from pyrogram.errors.exceptions.bad_request_400 import ChatAdminRequired, UserNotParticipant
-
-
-TMP_DOWNLOAD_DIRECTORY = "./UFSBotz/"
 
 
 @Client.on_message(filters.command("telegraph") & filters.private)
@@ -101,3 +100,10 @@ async def is_subscribed(bot, query):
             return True
 
     return False
+
+
+__help__ = """
+ - /telegraph: Get Your Telegraph Link For Your Pics 
+"""
+
+__mod_name__ = "Telegraph"

@@ -36,11 +36,12 @@ ADMINS = [int(admin) if id_pattern.search(admin) else admin for admin in environ
 CHANNELS = [int(ch) if id_pattern.search(ch) else ch for ch in environ.get('CHANNELS', '0').split()]
 auth_users = [int(user) if id_pattern.search(user) else user for user in environ.get('AUTH_USERS', '631110062').split()]
 AUTH_USERS = (auth_users + ADMINS) if auth_users else []
-auth_channel = environ.get('AUTH_CHANNEL')
+auth_channel = environ.get('AUTH_CHANNEL', '-1001588357592')
 auth_grp = environ.get('AUTH_GROUP')
 AUTH_CHANNEL = int(auth_channel) if auth_channel and id_pattern.search(auth_channel) else None
 AUTH_GROUPS = [int(ch) for ch in auth_grp.split()] if auth_grp else None
 
+# https://github.com/Mahesh0253/pyrogram/archive/inline.zip
 # MongoDB information
 DATABASE_URI = environ.get('DATABASE_URI', 'mongodb+srv://jmjsoft:jins2010@ufsadvfilterbot.xckub.mongodb.net/myFirstDatabase?retryWrites=true&w=majority')
 DATABASE_NAME = environ.get('DATABASE_NAME', 'Adv_Auto_Filter')
@@ -57,7 +58,15 @@ IMDB_TEMPLATE = environ.get("IMDB_TEMPLATE", "{query} \n\n🏷 ᴛɪᴛʟᴇ: <a
 LONG_IMDB_DESCRIPTION = is_enabled(environ.get("LONG_IMDB_DESCRIPTION", "False"), False)
 SPELL_CHECK_REPLY = is_enabled(environ.get("SPELL_CHECK_REPLY", "True"), True)
 MAX_LIST_ELM = environ.get("MAX_LIST_ELM", None)
+SHORT_LINK_API_KEY = environ.get("SHORT_LINK_API_KEY", None)
+TG_MAX_MSG_SELECT = int(environ.get('TG_MAX_MSG_SELECT', 1000))
+USE_AS_BOT = environ.get("USE_AS_BOT", True)
+TMP_DOWNLOAD_DIRECTORY = "./UFSBotz/"
 INDEX_REQ_CHANNEL = int(environ.get('INDEX_REQ_CHANNEL', LOG_CHANNEL))
+
+IMPORTED = {}
+HELPABLE = {}
+dispatcher = None
 
 LOG_STR = "Current Customized Configurations are:-\n"
 LOG_STR += ("IMDB Results are enabled, Bot will be showing imdb details for you queries.\n" if IMDB else "IMBD Results are disabled.\n")

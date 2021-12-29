@@ -145,3 +145,13 @@ async def connections(client, message):
             "There are no active connections!! Connect to some groups first.",
             quote=True
         )
+
+
+__help__ = """
+*Admin Only: In Group Only*
+ - /connect: Connect To Remote Chat
+ - /disconnect: Disconnect From Chat
+ - /connections: See The List Of Connected Groups.
+"""
+
+__mod_name__ = "Connections"

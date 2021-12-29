@@ -5,15 +5,16 @@ import logging
 import random
 import pyrogram
 
-from info import PICS
+from info import *
 from Script import script
 from pyrogram import Client, filters
 from database.users_chats_db import db
+from plugins.misc import paginate_modules
 from database.filters_mdb import del_all, find_filter, get_filters
 from utils import get_size, is_subscribed, get_poster, search_gagala, temp
 from database.ia_filterdb import Media, get_file_details, get_search_results
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
-from pyrogram.errors import FloodWait, UserIsBlocked, MessageNotModified, PeerIdInvalid
+from pyrogram.errors import FloodWait, UserIsBlocked, MessageNotModified, PeerIdInvalid, BadRequest
 from pyrogram.errors.exceptions.bad_request_400 import MediaEmpty, PhotoInvalidDimensions, WebpageMediaEmpty
 from database.connections_mdb import active_connection, all_connections, delete_connection, if_active, make_active, \
     make_inactive
@@ -81,8 +82,9 @@ async def next_page(bot, query):
     if int(ad_user) in ADMINS:
         pass
     elif int(req) not in [query.from_user.id, 0]:
-        return await query.answer("കാര്യമൊക്കെ കൊള്ളാം, പക്ഷേ, ഇത്‌ നിങ്ങളുടേതല്ല.;\nNice Try! But, This Was Not Your Request, Request Yourself;",
-                                  show_alert=True)
+        return await query.answer(
+            "കാര്യമൊക്കെ കൊള്ളാം, പക്ഷേ, ഇത്‌ നിങ്ങളുടേതല്ല.;\nNice Try! But, This Was Not Your Request, Request Yourself;",
+            show_alert=True)
     try:
         offset = int(offset)
     except:
@@ -189,6 +191,69 @@ async def advantage_spoll_choker(bot, query):
 
 @Client.on_callback_query()
 async def cb_handler(client: Client, query: CallbackQuery):
+    first_name = query.from_user.first_name
+    mod_match = re.match(r"help_module\((.+?)\)", query.data)
+    prev_match = re.match(r"help_prev\((.+?)\)", query.data)
+    next_match = re.match(r"help_next\((.+?)\)", query.data)
+    back_match = re.match(r"help_back", query.data)
+    help_match = re.match(r"help_", query.data)
+    close_match = re.match(r"close_btn", query.data)
+
+    # ######################### MODULE HELP START #############################################################
+    try:
+        if mod_match:
+            module = mod_match.group(1)
+            text = "Here is the help for the *{}* module:\n".format(HELPABLE[module].__mod_name__) \
+                   + HELPABLE[module].__help__
+            await query.message.edit_text(text=text,
+                                          parse_mode="markdown",
+                                          reply_markup=InlineKeyboardMarkup(
+                                              [[InlineKeyboardButton(text="Back", callback_data="help_back")]]))
+
+        elif prev_match:
+            curr_page = int(prev_match.group(1))
+            await query.message.edit_text(script.HELP_STRINGS.format(first_name, first_name),
+                                          parse_mode="markdown",
+                                          reply_markup=InlineKeyboardMarkup(
+                                              paginate_modules(curr_page - 1, HELPABLE, "help")))
+
+        elif next_match:
+            next_page = int(next_match.group(1))
+            await query.message.edit_text(script.HELP_STRINGS.format(first_name, first_name),
+                                          parse_mode="markdown",
+                                          reply_markup=InlineKeyboardMarkup(
+                                              paginate_modules(next_page + 1, HELPABLE, "help")))
+
+        elif back_match:
+            await query.message.edit_text(text=script.HELP_STRINGS.format(first_name, first_name),
+                                          parse_mode="markdown",
+                                          reply_markup=InlineKeyboardMarkup(paginate_modules(0, HELPABLE, "help")))
+
+        elif help_match:
+            await query.message.edit_text(text=script.HELP_STRINGS.format(first_name, first_name),
+                                          parse_mode="markdown",
+                                          reply_markup=InlineKeyboardMarkup(paginate_modules(0, HELPABLE, "help")))
+        elif close_match:
+            await query.message.edit_text(text=script.HELP_STRINGS.format(first_name, first_name),
+                                          parse_mode="markdown",
+                                          reply_markup=InlineKeyboardMarkup(paginate_modules(0, HELPABLE, "help")))
+
+        # ensure no spinny white circle
+        await client.answer_callback_query(query.id)
+        # await query.message.delete()
+        # bot.delete_message(update.effective_chat.id, update.effective_message.message_id - 1)
+    except BadRequest as excp:
+        if excp.message == "Message Is Not Modified":
+            pass
+        elif excp.message == "Query_id_invalid":
+            pass
+        elif excp.message == "Message Can't Be Deleted":
+            pass
+        else:
+            logging.exception("Exception In Help Buttons. %s", str(query.data))
+
+    # ######################### MODULE HELP END #############################################################
+
     if query.data == "close_data":
         await query.message.delete()
     elif query.data == "delallconfirm":
@@ -491,26 +556,33 @@ async def cb_handler(client: Client, query: CallbackQuery):
             parse_mode='html'
         )
     elif query.data == "help":
-        buttons = [
-            [
-                InlineKeyboardButton('Manual Filter', callback_data='manuelfilter'),
-                InlineKeyboardButton('Auto Filter', callback_data='autofilter')
-            ],
-            [
-                InlineKeyboardButton('Connection', callback_data='coct'),
-                InlineKeyboardButton('Extra Mods', callback_data='extra')
-            ],
-            [
-                InlineKeyboardButton('🏠 Home', callback_data='start'),
-                InlineKeyboardButton('🔮 Status', callback_data='stats')
-            ]
-        ]
-        reply_markup = InlineKeyboardMarkup(buttons)
+        # if not keyboard:
+        keyboard = InlineKeyboardMarkup(paginate_modules(0, HELPABLE, "help"))
         await query.message.edit_text(
-            text=script.HELP_TXT.format(query.from_user.mention),
-            reply_markup=reply_markup,
-            parse_mode='html'
-        )
+            text=script.HELP_STRINGS.format(query.from_user.mention, query.from_user.first_name),
+            parse_mode="html",
+            reply_markup=keyboard)
+
+        # buttons = [
+        #     [
+        #         InlineKeyboardButton('Manual Filter', callback_data='manuelfilter'),
+        #         InlineKeyboardButton('Auto Filter', callback_data='autofilter')
+        #     ],
+        #     [
+        #         InlineKeyboardButton('Connection', callback_data='coct'),
+        #         InlineKeyboardButton('Extra Mods', callback_data='extra')
+        #     ],
+        #     [
+        #         InlineKeyboardButton('🏠 Home', callback_data='start'),
+        #         InlineKeyboardButton('🔮 Status', callback_data='stats')
+        #     ]
+        # ]
+        # reply_markup = InlineKeyboardMarkup(buttons)
+        # await query.message.edit_text(
+        #     text=script.HELP_TXT.format(query.from_user.mention),
+        #     reply_markup=reply_markup,
+        #     parse_mode='html'
+        # )
     elif query.data == "about":
         buttons = [
             [
@@ -787,10 +859,10 @@ async def auto_filter(client, msg, spoll=False):
         InlineKeyboardButton("⚜ ɴᴇᴡ ᴍᴏᴠɪᴇs ⚜", url="https://t.me/UFSNewReleased")
     ])
     imdb = await get_poster(search, file=(files[0]).file_name) if IMDB else None
-    query_by = f"<b>ɴᴏ ᴏғ ғɪʟᴇs :</b> <code><b><i>{total_results}</i></b></code>\n"\
-               f"<b>ʏᴏᴜʀ ϙᴜᴇʀʏ :</b> <code><b><i>{search}</i></b></code>\n"\
-               f"<b>ʀᴇϙᴜᴇsᴛᴇᴅ ʙʏ :</b> <b><code>{msg.from_user.first_name}</code></b>" #\
-               # f"<b>Aᴜᴛᴏᴍᴀᴛɪᴄᴀʟʟʏ Dᴇʟᴇᴛᴇ Tʜɪs Rᴇϙᴜᴇsᴛ Aғᴛᴇʀ 2 Mɪɴᴜᴛᴇs</b>"
+    query_by = f"<b>ɴᴏ ᴏғ ғɪʟᴇs :</b> <code><b><i>{total_results}</i></b></code>\n" \
+               f"<b>ʏᴏᴜʀ ϙᴜᴇʀʏ :</b> <code><b><i>{search}</i></b></code>\n" \
+               f"<b>ʀᴇϙᴜᴇsᴛᴇᴅ ʙʏ :</b> <b><code>{msg.from_user.first_name}</code></b>"  # \
+    # f"<b>Aᴜᴛᴏᴍᴀᴛɪᴄᴀʟʟʏ Dᴇʟᴇᴛᴇ Tʜɪs Rᴇϙᴜᴇsᴛ Aғᴛᴇʀ 2 Mɪɴᴜᴛᴇs</b>"
     if imdb:
         cap = IMDB_TEMPLATE.format(
             query=query_by,
@@ -829,7 +901,8 @@ async def auto_filter(client, msg, spoll=False):
 
     if imdb and imdb.get('poster'):
         try:
-            d_msg = await message.reply_photo(photo=imdb.get('poster'), caption=cap, reply_markup=InlineKeyboardMarkup(btn))
+            d_msg = await message.reply_photo(photo=imdb.get('poster'), caption=cap,
+                                              reply_markup=InlineKeyboardMarkup(btn))
             # await asyncio.sleep(120)
             # await message.delete()
             # await d_msg.delete()

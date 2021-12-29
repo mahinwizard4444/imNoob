@@ -211,3 +211,19 @@ def build_url_keyboard(buttons):
             keyb.append([InlineKeyboardButton(btn[0], url=btn[1])])
 
     return keyb
+
+
+__help__ = """
+*Admin only:*
+ - /broadcast Broadcast Your Message To Users...
+ 
+ Broadcasting The Message To All Subscribed Users.
+ 
+ Support Message Format, Image, Video, Stickers, Text, Image With Buttons, Text With Buttons.
+ 
+ Format For Text With Buttons:
+    Hello Dear How Are You! You Can Join My Channel.
+    [Join Here](buttonurl://t.me/UFSBotz)
+"""
+
+__mod_name__ = "Broadcast"

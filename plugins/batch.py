@@ -207,3 +207,15 @@ def unpack_new_file_id(new_file_id):
     )
     file_ref = encode_file_ref(decoded.file_reference)
     return file_id, file_ref
+
+
+__help__ = """
+ - /batch: Generate Your Batch File Link
+ 
+ Note:- I'm Should Be Admin In Your DB Channels & Your Movie Groups.
+ Connect Me From Your Group By Using /connect Command.
+ 
+ Send /batch Command, And Follow The Instructions.
+"""
+
+__mod_name__ = "Batch"
