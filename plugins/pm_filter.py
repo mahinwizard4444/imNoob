@@ -199,61 +199,6 @@ async def cb_handler(client: Client, query: CallbackQuery):
     help_match = re.match(r"help_", query.data)
     close_match = re.match(r"close_btn", query.data)
 
-    # ######################### MODULE HELP START #############################################################
-    try:
-        if mod_match:
-            module = mod_match.group(1)
-            text = "Here is the help for the **{}** module:\n".format(HELPABLE[module].__mod_name__) \
-                   + HELPABLE[module].__help__
-            await query.message.edit_text(text=text,
-                                          parse_mode="markdown",
-                                          reply_markup=InlineKeyboardMarkup(
-                                              [[InlineKeyboardButton(text="Back", callback_data="help_back")]]))
-
-        elif prev_match:
-            curr_page = int(prev_match.group(1))
-            await query.message.edit_text(script.HELP_STRINGS.format(first_name, "@lnc3f3r"),
-                                          parse_mode="markdown",
-                                          reply_markup=InlineKeyboardMarkup(
-                                              paginate_modules(curr_page - 1, HELPABLE, "help")))
-
-        elif next_match:
-            next_page = int(next_match.group(1))
-            await query.message.edit_text(script.HELP_STRINGS.format(first_name, "@lnc3f3r"),
-                                          parse_mode="markdown",
-                                          reply_markup=InlineKeyboardMarkup(
-                                              paginate_modules(next_page + 1, HELPABLE, "help")))
-
-        elif back_match:
-            await query.message.edit_text(text=script.HELP_STRINGS.format(first_name, "@lnc3f3r"),
-                                          parse_mode="markdown",
-                                          reply_markup=InlineKeyboardMarkup(paginate_modules(0, HELPABLE, "help")))
-
-        elif help_match:
-            await query.message.edit_text(text=script.HELP_STRINGS.format(first_name, "@lnc3f3r"),
-                                          parse_mode="markdown",
-                                          reply_markup=InlineKeyboardMarkup(paginate_modules(0, HELPABLE, "help")))
-        elif close_match:
-            await query.message.edit_text(text=script.HELP_STRINGS.format(first_name, "@lnc3f3r"),
-                                          parse_mode="markdown",
-                                          reply_markup=InlineKeyboardMarkup(paginate_modules(0, HELPABLE, "help")))
-
-        # ensure no spinny white circle
-        await client.answer_callback_query(query.id)
-        # await query.message.delete()
-        # bot.delete_message(update.effective_chat.id, update.effective_message.message_id - 1)
-    except BadRequest as excp:
-        if excp.message == "Message Is Not Modified":
-            pass
-        elif excp.message == "Query_id_invalid":
-            pass
-        elif excp.message == "Message Can't Be Deleted":
-            pass
-        else:
-            logging.exception("Exception In Help Buttons. %s", str(query.data))
-
-    # ######################### MODULE HELP END #############################################################
-
     if query.data == "close_data":
         await query.message.delete()
     elif query.data == "delallconfirm":
@@ -791,6 +736,63 @@ async def cb_handler(client: Client, query: CallbackQuery):
         else:
             await query.message.edit(caption, reply_markup=InlineKeyboardMarkup(btn), disable_web_page_preview=False)
         await query.answer()
+
+
+
+    # ######################### MODULE HELP START #############################################################
+    try:
+        if mod_match:
+            module = mod_match.group(1)
+            text = "Here is the help for the **{}** module:\n".format(HELPABLE[module].__mod_name__) \
+                   + HELPABLE[module].__help__
+            await query.message.edit_text(text=text,
+                                          parse_mode="markdown",
+                                          reply_markup=InlineKeyboardMarkup(
+                                              [[InlineKeyboardButton(text="Back", callback_data="help_back")]]))
+
+        elif prev_match:
+            curr_page = int(prev_match.group(1))
+            await query.message.edit_text(script.HELP_STRINGS.format(first_name, "@lnc3f3r"),
+                                          parse_mode="markdown",
+                                          reply_markup=InlineKeyboardMarkup(
+                                              paginate_modules(curr_page - 1, HELPABLE, "help")))
+
+        elif next_match:
+            next_page = int(next_match.group(1))
+            await query.message.edit_text(script.HELP_STRINGS.format(first_name, "@lnc3f3r"),
+                                          parse_mode="markdown",
+                                          reply_markup=InlineKeyboardMarkup(
+                                              paginate_modules(next_page + 1, HELPABLE, "help")))
+
+        elif back_match:
+            await query.message.edit_text(text=script.HELP_STRINGS.format(first_name, "@lnc3f3r"),
+                                          parse_mode="markdown",
+                                          reply_markup=InlineKeyboardMarkup(paginate_modules(0, HELPABLE, "help")))
+
+        elif help_match:
+            await query.message.edit_text(text=script.HELP_STRINGS.format(first_name, "@lnc3f3r"),
+                                          parse_mode="markdown",
+                                          reply_markup=InlineKeyboardMarkup(paginate_modules(0, HELPABLE, "help")))
+        elif close_match:
+            await query.message.edit_text(text=script.HELP_STRINGS.format(first_name, "@lnc3f3r"),
+                                          parse_mode="markdown",
+                                          reply_markup=InlineKeyboardMarkup(paginate_modules(0, HELPABLE, "help")))
+
+        # ensure no spinny white circle
+        await client.answer_callback_query(query.id)
+        # await query.message.delete()
+        # bot.delete_message(update.effective_chat.id, update.effective_message.message_id - 1)
+    except BadRequest as excp:
+        if excp.message == "Message Is Not Modified":
+            pass
+        elif excp.message == "Query_id_invalid":
+            pass
+        elif excp.message == "Message Can't Be Deleted":
+            pass
+        else:
+            logging.exception("Exception In Help Buttons. %s", str(query.data))
+
+    # ######################### MODULE HELP END #############################################################
 
 
 async def check_manual_filter(group_id, keyword, message):
