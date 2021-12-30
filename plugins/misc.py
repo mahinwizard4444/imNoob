@@ -328,7 +328,7 @@ async def paste_func(_, message):
     #     f"**Pasted!**\n{pyperclip.paste()}",
     #     quote=True,
     # )
-    logging.info(pyperclip.paste)
+    logging.info(pyperclip.paste())
     await message.reply_text(
         f"{pyperclip.paste()}"
     )
