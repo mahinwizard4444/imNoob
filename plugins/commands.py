@@ -13,7 +13,8 @@ from pyrogram.errors.exceptions.bad_request_400 import ChatAdminRequired
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from database.ia_filterdb import Media, get_file_details, unpack_new_file_id
 from database.users_chats_db import db
-from info import CHANNELS, ADMINS, AUTH_CHANNEL, CUSTOM_FILE_CAPTION, LOG_CHANNEL, PICS
+from info import CHANNELS, ADMINS, AUTH_CHANNEL, CUSTOM_FILE_CAPTION, LOG_CHANNEL, PICS, HELPABLE
+from plugins.misc import paginate_modules
 from utils import get_size, is_subscribed, temp
 import re
 
@@ -34,14 +35,16 @@ async def start(client, message):
             ]
             reply_markup = InlineKeyboardMarkup(buttons)
             await message.reply(
-                script.START_TXT.format(message.from_user.mention if message.from_user else message.chat.title, temp.U_NAME,
+                script.START_TXT.format(message.from_user.mention if message.from_user else message.chat.title,
+                                        temp.U_NAME,
                                         temp.B_NAME), reply_markup=reply_markup)
             await asyncio.sleep(2)
             # 😢 https://github.com/EvamariaTG/EvaMaria/blob/master/plugins/p_ttishow.py#L17 😬 wait a bit, before checking.
             if not await db.get_chat(message.chat.id):
                 total = await client.get_chat_members_count(message.chat.id)
                 await client.send_message(LOG_CHANNEL,
-                                          script.LOG_TEXT_G.format(message.chat.title, message.chat.id, total, "Unknown"))
+                                          script.LOG_TEXT_G.format(message.chat.title, message.chat.id, total,
+                                                                   "Unknown"))
                 await db.add_chat(message.chat.id, message.chat.title)
             return
         else:
@@ -181,6 +184,33 @@ async def start(client, message):
     )
 
 
+@Client.on_message(filters.command("help"))
+async def help(client, message):
+    first_name = message.from_user.first_name
+    chat = message.chat.id  # type: Optional[Chat]
+    args = message.text.split(None, 1)
+
+    # ONLY send help in PM
+    if chat.type != chat.PRIVATE:
+
+        message.reply_text("Contact me in PM to get the list of possible commands.",
+                           reply_markup=InlineKeyboardMarkup(
+                               [[InlineKeyboardButton(text="Help",
+                                                      url="t.me/{}?start=help".format(
+                                                          temp.U_NAME))]]))
+        return
+
+    elif len(args) >= 2 and any(args[1].lower() == x for x in HELPABLE):
+        module = args[1].lower()
+        text = "Here is the available help for the *{}* module:\n".format(HELPABLE[module].__mod_name__) \
+               + HELPABLE[module].__help__
+        send_help(client, chat.id, text,
+                  InlineKeyboardMarkup([[InlineKeyboardButton(text="Back", callback_data="help_back")]]))
+
+    else:
+        send_help(client, chat.id, script.HELP_STRINGS.format(first_name, "@lnc3f3r"))
+
+
 @Client.on_message(filters.command('channel') & filters.user(ADMINS))
 async def channel_info(bot, message):
     """Send basic information of channel"""
@@ -315,3 +345,12 @@ async def start111(client: Client, message):
         await client.send_message(message.chat.id, f'Your name is: ')
     except Exception as err:
         await client.send_message(message.chat.id, f'Error is: {str(err)}')
+
+
+def send_help(client, chat_id, text, keyboard=None):
+    if not keyboard:
+        keyboard = InlineKeyboardMarkup(paginate_modules(0, HELPABLE, "help"))
+    client.send_message(chat_id=chat_id,
+                        text=text,
+                        parse_mode="markdown",
+                        reply_markup=keyboard)

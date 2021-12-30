@@ -11,7 +11,7 @@ a = None
 query = None
 
 
-@Client.on_message(filters.command(["search"]))
+@Client.on_message(filters.command(["torrent"]))
 async def torrent(_, message):
     global m
     global i
@@ -22,7 +22,7 @@ async def torrent(_, message):
     except:
         pass
     if len(message.command) < 2:
-        await message.reply_text("/search ᴀɴᴅ ᴛʏᴘᴇ ʏᴏᴜʀ ᴍᴏᴠɪᴇ ɴᴀᴍᴇ")
+        await message.reply_text("/torrent ᴀɴᴅ ᴛʏᴘᴇ ʏᴏᴜʀ ᴍᴏᴠɪᴇ ɴᴀᴍᴇ")
         return
     query = message.text.split(None, 1)[1].replace(" ", "%20")
     m = await message.reply_text("Searching\nThis might take a while")
@@ -128,3 +128,8 @@ async def callback_query_delete(_, message):
     a = None
     query = None
 
+__help__ = """
+ - /torrent <movie name>: Get Your Torrent Link From Various Resource. 
+"""
+
+__mod_name__ = "Torrent"

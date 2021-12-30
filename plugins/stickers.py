@@ -41,9 +41,10 @@ async def getstickerasfile(bot, message):
                     #   zip_path= ZipFile.write("")
                     await tx.edit("Uploading...")
                     start = time.time()
+                    powered_by = "<b>[<a href='https://t.me/UFSBotz'>©𝙐𝙁𝙎 𝘽𝙤𝙩𝙯</a>]</b>"
                     await message.reply_document(
                         document=file_path,
-                        caption="💫 ℙ𝕠𝕨𝕖𝕣𝕖𝕕 𝔹𝕪 : [©𝙐𝙁𝙎 𝘽𝙤𝙩𝙯](https://t.me/UFSBotz)",
+                        caption=f"💫 ℙ𝕠𝕨𝕖𝕣𝕖𝕕 𝔹𝕪 : {powered_by}",
                         parse_mode="html")
                     await tx.delete()
                     os.remove(file_path)
@@ -59,9 +60,10 @@ async def getstickerasfile(bot, message):
                     await tx.edit("Downloaded")
                     await tx.edit("Uploading...")
                     start = time.time()
+                    powered_by = "<b>[<a href='https://t.me/UFSBotz'>©𝙐𝙁𝙎 𝘽𝙤𝙩𝙯</a>]</b>"
                     await message.reply_document(
                         document=file_path,
-                        caption="💫 ℙ𝕠𝕨𝕖𝕣𝕖𝕕 𝔹𝕪 : [©𝙐𝙁𝙎 𝘽𝙤𝙩𝙯](https://t.me/UFSBotz)",
+                        caption=f"💫 ℙ𝕠𝕨𝕖𝕣𝕖𝕕 𝔹𝕪 : {powered_by}",
                         parse_mode="html")
                     await tx.delete()
                     os.remove(file_path)
@@ -107,3 +109,16 @@ async def findsticker(bot, message):
             await message.reply_text("Please Reply To A ID To Get Its STICKER.")
     except Exception as error:
         txt = await message.reply_text("Not A Valid File ID")
+
+__help__ = """
+ - /getsticker: Generate Your Sticker As Image (.png). 
+ - /clearcache: Clear Cache Files.
+ - /stickerid: Get Your Sticker Id.
+ - /findsticker: Find Your Sticker By Using Sticker Id.
+ 
+ * Send Sticker & Reply With Command /getsticker For Getting Image.
+ * Send Sticker & Reply With Command /stickerid For Getting Sticker Id.
+ * Send Sticker Id & Reply With Command /findsticker For Getting Sticker.
+"""
+
+__mod_name__ = "Sticker"

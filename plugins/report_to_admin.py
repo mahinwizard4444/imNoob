@@ -26,3 +26,13 @@ async def report(bot, message):
                 pass
         if success:
             await message.reply_text("**Reported To Admins!**")
+
+
+__help__ = """
+ - /report: Report To Admins Something From Group. 
+ - You can Use @admins or @admin Also.
+
+ * Reply To Message With Command /report or By Use @admins or @admin For Reporting Something.
+"""
+
+__mod_name__ = "Report"
