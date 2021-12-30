@@ -86,13 +86,13 @@ these are the extra features of Eva Maria
 • /info  - <code>get information about a user.</code>
 • /imdb  - <code>get the film information from IMDb source.</code>
 • /search  - <code>get the film information from various sources.</code>"""
-    ADMIN_TXT = """Help: <b>Admin mods</b>
+    ADMIN_TXT = """Help: **Admin mods**
 
-<b>NOTE:</b>
+**NOTE:**
 This module only works for my admins
 
-<b>Commands and Usage:</b>
-• /logs - <code>to get the recent errors</code>
+<b>Commands and Usage:**
+• /logs - 'to get the recent errors'
 • /stats - <code>to get status of files in db.</code>
 • /delete - <code>to delete a specific file from db.</code>
 • /users - <code>to get list of my users and ids.</code>
