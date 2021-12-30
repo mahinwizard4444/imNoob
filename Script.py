@@ -2,7 +2,7 @@ class script(object):
     START_TXT = """𝙷𝙴𝙻𝙾 {},
 𝙼𝚈 𝙽𝙰𝙼𝙴 𝙸𝚂 <a href=https://t.me/{}>{}</a>, 𝙸 𝙲𝙰𝙽 𝙿𝚁𝙾𝚅𝙸𝙳𝙴 𝙼𝙾𝚅𝙸𝙴𝚂😍"""
     HELP_STRINGS = """
-Hey Dear! My name is **{}**. I Am A Group Movie Bot, Here To Help You Get Around And Keep The Order In Your Groups!
+Hey Dear **{}**! My name is **UFS #V3.0**. I Am A Group Movie Bot, Here To Help You Get Around And Keep The Order In Your Groups!
 I Have Lots Of Handy Features, 
 
 **Helpful commands**:
