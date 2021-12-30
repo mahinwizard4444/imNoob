@@ -1,5 +1,7 @@
 from pyrogram import filters, Client
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+
+from Script import script
 from database.connections_mdb import add_connection, all_connections, if_active, delete_connection
 from info import ADMINS
 import logging
@@ -148,10 +150,7 @@ async def connections(client, message):
 
 
 __help__ = """
-*Admin Only: In Group Only*
- - /connect: Connect To Remote Chat
- - /disconnect: Disconnect From Chat
- - /connections: See The List Of Connected Groups.
-"""
+{}
+""".format(script.CONNECTION_TXT)
 
 __mod_name__ = "Connections"

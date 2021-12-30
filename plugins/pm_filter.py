@@ -203,7 +203,7 @@ async def cb_handler(client: Client, query: CallbackQuery):
     try:
         if mod_match:
             module = mod_match.group(1)
-            text = "Here is the help for the *{}* module:\n".format(HELPABLE[module].__mod_name__) \
+            text = "Here is the help for the **{}** module:\n".format(HELPABLE[module].__mod_name__) \
                    + HELPABLE[module].__help__
             await query.message.edit_text(text=text,
                                           parse_mode="markdown",
@@ -212,29 +212,29 @@ async def cb_handler(client: Client, query: CallbackQuery):
 
         elif prev_match:
             curr_page = int(prev_match.group(1))
-            await query.message.edit_text(script.HELP_STRINGS.format(first_name, first_name),
+            await query.message.edit_text(script.HELP_STRINGS.format(first_name, "@lnc3f3r"),
                                           parse_mode="markdown",
                                           reply_markup=InlineKeyboardMarkup(
                                               paginate_modules(curr_page - 1, HELPABLE, "help")))
 
         elif next_match:
             next_page = int(next_match.group(1))
-            await query.message.edit_text(script.HELP_STRINGS.format(first_name, first_name),
+            await query.message.edit_text(script.HELP_STRINGS.format(first_name, "@lnc3f3r"),
                                           parse_mode="markdown",
                                           reply_markup=InlineKeyboardMarkup(
                                               paginate_modules(next_page + 1, HELPABLE, "help")))
 
         elif back_match:
-            await query.message.edit_text(text=script.HELP_STRINGS.format(first_name, first_name),
+            await query.message.edit_text(text=script.HELP_STRINGS.format(first_name, "@lnc3f3r"),
                                           parse_mode="markdown",
                                           reply_markup=InlineKeyboardMarkup(paginate_modules(0, HELPABLE, "help")))
 
         elif help_match:
-            await query.message.edit_text(text=script.HELP_STRINGS.format(first_name, first_name),
+            await query.message.edit_text(text=script.HELP_STRINGS.format(first_name, "@lnc3f3r"),
                                           parse_mode="markdown",
                                           reply_markup=InlineKeyboardMarkup(paginate_modules(0, HELPABLE, "help")))
         elif close_match:
-            await query.message.edit_text(text=script.HELP_STRINGS.format(first_name, first_name),
+            await query.message.edit_text(text=script.HELP_STRINGS.format(first_name, "@lnc3f3r"),
                                           parse_mode="markdown",
                                           reply_markup=InlineKeyboardMarkup(paginate_modules(0, HELPABLE, "help")))
 
@@ -559,7 +559,7 @@ async def cb_handler(client: Client, query: CallbackQuery):
         # if not keyboard:
         keyboard = InlineKeyboardMarkup(paginate_modules(0, HELPABLE, "help"))
         await query.message.edit_text(
-            text=script.HELP_STRINGS.format(query.from_user.mention, query.from_user.first_name),
+            text=script.HELP_STRINGS.format(query.from_user.mention, "@lnc3f3r"),
             parse_mode="html",
             reply_markup=keyboard)
 
