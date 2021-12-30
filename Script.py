@@ -2,10 +2,10 @@ class script(object):
     START_TXT = """𝙷𝙴𝙻𝙾 {},
 𝙼𝚈 𝙽𝙰𝙼𝙴 𝙸𝚂 <a href=https://t.me/{}>{}</a>, 𝙸 𝙲𝙰𝙽 𝙿𝚁𝙾𝚅𝙸𝙳𝙴 𝙼𝙾𝚅𝙸𝙴𝚂😍"""
     HELP_STRINGS = """
-Hey Dear **{}**! My name is **UFS #V3.0**. I Am A Group Movie Bot, Here To Help You Get Around And Keep The Order In Your Groups!
+Hey Dear <b>{}</b>! My name is <b>UFS #V3.0</b>>. I Am A Group Movie Bot, Here To Help You Get Around And Keep The Order In Your Groups!
 I Have Lots Of Handy Features, 
 
-**Helpful commands**:
+<b>Helpful commands</b>:
 - /start: Starts me! You've probably already used this.
 - /help: Sends this message; I'll tell you more about myself!
 - /donate: Gives you info on how to support me and my creator.
