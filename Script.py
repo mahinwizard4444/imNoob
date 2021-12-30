@@ -5,7 +5,7 @@ class script(object):
 Hey Dear! My name is **{}**. I Am A Group Movie Bot, Here To Help You Get Around And Keep The Order In Your Groups!
 I Have Lots Of Handy Features, 
 
-*Helpful commands*:
+**Helpful commands**:
 - /start: Starts me! You've probably already used this.
 - /help: Sends this message; I'll tell you more about myself!
 - /donate: Gives you info on how to support me and my creator.
