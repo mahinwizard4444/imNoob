@@ -91,18 +91,18 @@ these are the extra features of Eva Maria
 **NOTE:**
 This module only works for my admins
 
-<b>Commands and Usage:**
-• /logs - 'to get the recent errors'
-• /stats - <code>to get status of files in db.</code>
-• /delete - <code>to delete a specific file from db.</code>
-• /users - <code>to get list of my users and ids.</code>
-• /chats - <code>to get list of the my chats and ids </code>
-• /leave  - <code>to leave from a chat.</code>
-• /disable  -  <code>do disable a chat.</code>
-• /ban  - <code>to ban a user.</code>
-• /unban  - <code>to unban a user.</code>
-• /channel - <code>to get list of total connected channels</code>
-• /broadcast - <code>to broadcast a message to all users</code>"""
+**Commands and Usage:**
+• /logs - `to get the recent errors`
+• /stats - `to get status of files in db.`
+• /delete - `to delete a specific file from db.`
+• /users - `to get list of my users and ids.`
+• /chats - `to get list of the my chats and ids `
+• /leave  - `to leave from a chat.`
+• /disable  -  `do disable a chat.`
+• /ban  - `to ban a user.`
+• /unban  - `to unban a user.`
+• /channel - `to get list of total connected channels`
+• /broadcast - `to broadcast a message to all users`"""
     STATUS_TXT = """<b>★ Tᴏᴛᴀʟ Fɪʟᴇs:</b> <code>{}</code>
 <b>★ Tᴏᴛᴀʟ Usᴇʀs:</b> <code>{}</code>
 <b>★ Tᴏᴛᴀʟ Cʜᴀᴛs:</b> <code>{}</code>
