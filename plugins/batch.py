@@ -211,49 +211,46 @@ async def batch_single_file(client: Client, message):
 
     while True:
         try:
-            first_message = await client.ask(text="Forward Your Message from DB Channel (with Quotes)..\n\n"
-                                                  "or Send the DB Channel Post Link", chat_id=message.from_user.id,
-                                             filters=(filters.forwarded | (filters.text & ~filters.forwarded) | filters.incoming),
-                                             timeout=60)
+            channel_message = await client.ask(text="Forward Message from the DB Channel (with Quotes)..\n"
+                                                    "or Send the DB Channel Post link", chat_id=message.from_user.id,
+                                               filters=(filters.forwarded | (filters.text & ~filters.forwarded)),
+                                               timeout=60)
         except:
             return
-        if first_message.via_bot:
-            first_channel_id = first_message.via_bot.id
-        else:
-            first_channel_id = first_message.forward_from_chat.id
+        channel_id = channel_message.forward_from_chat.id
         try:
-            channel = await client.get_chat(first_channel_id)
+            channel = await client.get_chat(channel_id)
         except Exception as e:
-            await first_message.reply("❌ Error\n\nMake Sure Bot Is Admin In Forwarded Channel...", quote=True)
+            await channel_message.reply("❌ Error\n\nMake Sure Bot Is Admin In Forwarded Channel...", quote=True)
             return
 
-        f_msg_id = await get_message_id(client, first_message, first_channel_id)
-        if f_msg_id:
+        msg_id = await get_message_id(client, channel_message, channel_id)
+        if msg_id:
             break
         else:
-            await first_message.reply("❌ Error\n\nthis Forwarded Post is not from my DB Channel or this Link is taken "
-                                      "from DB Channel", quote=True)
+            await channel_message.reply("❌ Error\n\nthis Forwarded Post is not from my DB Channel or this Link is not "
+                                        "taken from DB Channel", quote=True)
             continue
 
-    string = f"get-{f_msg_id}-{abs(first_channel_id)}"
+    string = f"get-{msg_id}-{abs(channel_id)}"
     base64_string = await encode(string)
     link = f"https://t.me/{temp.U_NAME}?start={base64_string}"
 
     async with lock:
         try:
-            total = f_msg_id + 1
-            current = f_msg_id
+            total = msg_id + 1
+            current = msg_id
             file_id = ''
             file_ref = ''
             caption = ''
             cap = None
             while current < total:
                 try:
-                    message = await client.get_messages(chat_id=first_channel_id, message_ids=current, replies=0)
+                    message = await client.get_messages(chat_id=channel_id, message_ids=current, replies=0)
                 except FloodWait as e:
                     await asyncio.sleep(e.x)
                     message = await client.get_messages(
-                        first_channel_id,
+                        channel_id,
                         current,
                         replies=0
                     )
@@ -293,11 +290,11 @@ async def batch_single_file(client: Client, message):
 
         except Exception as e:
             logger.exception(e)
-            await first_message.edit(f'Error: {e}')
+            await channel_message.edit(f'Error: {e}')
         else:
             reply_markup = InlineKeyboardMarkup([[InlineKeyboardButton("🔁 Share URL",
                                                                        url=f'https://telegram.me/share/url?url={link}')]])
-            await first_message.reply_text(f"<b>Here is your link</b>\n\n{link}", quote=True,
+            await channel_message.reply_text(f"<b>Here is your link</b>\n\n{link}", quote=True,
                                            reply_markup=reply_markup)
 
 
