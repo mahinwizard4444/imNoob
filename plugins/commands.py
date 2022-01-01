@@ -134,16 +134,16 @@ async def start(client, message):
                     chat_id=message.from_user.id,
                     file_id=b_file,
                     caption=f_caption,
-                    parse_mode="html",
-                    reply_markup=InlineKeyboardMarkup(
-                        [
-                            [
-                                InlineKeyboardButton(
-                                    '🎭 ⭕️ ᴄᴏɴᴛᴀᴄᴛ ᴍᴇ ⭕️', url="https://t.me/UFSChatBot"
-                                )
-                            ]
-                        ]
-                    )
+                    parse_mode="html"   # ,
+                    # reply_markup=InlineKeyboardMarkup(
+                    #     [
+                    #         [
+                    #             InlineKeyboardButton(
+                    #                 '🎭 ⭕️ ᴄᴏɴᴛᴀᴄᴛ ᴍᴇ ⭕️', url="https://t.me/UFSChatBot"
+                    #             )
+                    #         ]
+                    #     ]
+                    # )
                 )
             except Exception as err:
                 return await message.reply(f"{str(err)}")
