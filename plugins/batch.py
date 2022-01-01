@@ -213,11 +213,14 @@ async def batch_single_file(client: Client, message):
         try:
             first_message = await client.ask(text="Forward Your Message from DB Channel (with Quotes)..\n\n"
                                                   "or Send the DB Channel Post Link", chat_id=message.from_user.id,
-                                             filters=(filters.forwarded | (filters.text & ~filters.forwarded)),
+                                             filters=(filters.forwarded | (filters.text & ~filters.forwarded) | filters.incoming),
                                              timeout=60)
         except:
             return
-        first_channel_id = first_message.forward_from_chat.id
+        if first_message.via_bot:
+            first_channel_id = first_message.via_bot.id
+        else:
+            first_channel_id = first_message.forward_from_chat.id
         try:
             channel = await client.get_chat(first_channel_id)
         except Exception as e:
@@ -296,6 +299,11 @@ async def batch_single_file(client: Client, message):
                                                                        url=f'https://telegram.me/share/url?url={link}')]])
             await first_message.reply_text(f"<b>Here is your link</b>\n\n{link}", quote=True,
                                            reply_markup=reply_markup)
+
+
+@Bot.on_message(filters.command('dellink') & filters.incoming)
+async def delete_batch(client: Client, message):
+    test = message.text
 
 
 def encode_file_id(s: bytes) -> str:
