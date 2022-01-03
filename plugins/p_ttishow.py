@@ -1,292 +1,1124 @@
+import re
+import ast
 import asyncio
+import logging
 import random
+import pyrogram
 
-from info import PICS
-from pyrogram import Client, filters
-from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
-from pyrogram.errors.exceptions.bad_request_400 import MessageTooLong, PeerIdInvalid
-from info import ADMINS, LOG_CHANNEL, SUPPORT_CHAT
-from database.users_chats_db import db
-from database.ia_filterdb import Media
-from utils import get_size, temp
+from info import *
 from Script import script
-from pyrogram.errors import ChatAdminRequired
+from pyrogram import Client, filters
+from database.users_chats_db import db
+from plugins.misc import paginate_modules
+from database.filters_mdb import del_all, find_filter, get_filters
+from utils import get_size, is_subscribed, get_poster, search_gagala, temp
+from database.ia_filterdb import Media, get_file_details, get_search_results
+from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
+from pyrogram.errors import FloodWait, UserIsBlocked, MessageNotModified, PeerIdInvalid, BadRequest
+from pyrogram.errors.exceptions.bad_request_400 import MediaEmpty, PhotoInvalidDimensions, WebpageMediaEmpty
+from database.connections_mdb import active_connection, all_connections, delete_connection, if_active, make_active, \
+    make_inactive
+from info import ADMINS, AUTH_CHANNEL, AUTH_USERS, CUSTOM_FILE_CAPTION, AUTH_GROUPS, P_TTI_SHOW_OFF, IMDB, \
+    SINGLE_BUTTON, SPELL_CHECK_REPLY, IMDB_TEMPLATE
 
-"""-----------------------------------------https://t.me/GetTGLink/4179 --------------------------------------"""
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.ERROR)
+
+BUTTONS = {}
+SPELL_CHECK = {}
 
 
-@Client.on_message(filters.new_chat_members & filters.group)
-async def save_group(bot, message):
-    r_j_check = [u.id for u in message.new_chat_members]
-    if temp.ME in r_j_check:
-        if not await db.get_chat(message.chat.id):
-            total = await bot.get_chat_members_count(message.chat.id)
-            r_j = message.from_user.mention if message.from_user else "Anonymous"
-            await bot.send_message(LOG_CHANNEL,
-                                   script.LOG_TEXT_G.format(message.chat.title, message.chat.id, total, r_j))
-            await db.add_chat(message.chat.id, message.chat.title)
-        if message.chat.id in temp.BANNED_CHATS:
-            # Inspired from a boat of a banana tree
-            buttons = [[
-                InlineKeyboardButton('Support', url=f'https://t.me/{SUPPORT_CHAT}')
-            ]]
-            reply_markup = InlineKeyboardMarkup(buttons)
-            k = await message.reply(
-                text='<b>CHAT NOT ALLOWED 🐞\n\nMy admins has restricted me from working here ! If you want to know more about it contact support..</b>',
-                reply_markup=reply_markup,
-            )
+@Client.on_message(filters.group & filters.text & ~filters.edited & filters.incoming)
+async def give_filter(client, message):
+    group_id = message.chat.id
+    name = message.text
 
-            try:
-                await k.pin()
-            except:
-                pass
-            await bot.leave_chat(message.chat.id)
+    keywords = await get_filters(group_id)
+    for keyword in reversed(sorted(keywords, key=len)):
+        pattern = r"( |^|[^\w])" + re.escape(keyword) + r"( |$|[^\w])"
+        if re.search(pattern, name, flags=re.IGNORECASE):
+            await check_manual_filter(group_id, keyword, message)
             return
-        buttons = [[
-            InlineKeyboardButton('ℹ Help', url=f"https://t.me/{temp.U_NAME}?start=help"),
-            InlineKeyboardButton('📢 Updates', url='https://t.me/TeamEvamaria')
-        ]]
-        reply_markup = InlineKeyboardMarkup(buttons)
-        await message.reply_text(
-            text=f"<b>Thankyou For Adding Me In {message.chat.title} ❣️\n\nIf you have any questions & doubts about using me contact support.</b>",
-            reply_markup=reply_markup)
-    # else:
-    #     for u in message.new_chat_members:
-    #         if (temp.MELCOW).get('welcome') is not None:
-    #             try:
-    #                 await (temp.MELCOW['welcome']).delete()
-    #             except:
-    #                 pass
-    #         temp.MELCOW['welcome'] = await message.reply(f"<b>Hey , {u.mention}, Welcome to {message.chat.title}</b>")
+            # reply_text, btn, alert, fileid = await find_filter(group_id, keyword)
+            #
+            # if reply_text:
+            #     reply_text = reply_text.replace("\\n", "\n").replace("\\t", "\t")
+            #
+            # if btn is not None:
+            #     try:
+            #         if fileid == "None":
+            #             if btn == "[]":
+            #                 await message.reply_text(reply_text, disable_web_page_preview=True)
+            #             else:
+            #                 button = eval(btn)
+            #                 await message.reply_text(
+            #                     reply_text,
+            #                     disable_web_page_preview=True,
+            #                     reply_markup=InlineKeyboardMarkup(button)
+            #                 )
+            #         elif btn == "[]":
+            #             await message.reply_cached_media(
+            #                 fileid,
+            #                 caption=reply_text or ""
+            #             )
+            #         else:
+            #             button = eval(btn)
+            #             await message.reply_cached_media(
+            #                 fileid,
+            #                 caption=reply_text or "",
+            #                 reply_markup=InlineKeyboardMarkup(button)
+            #             )
+            #     except Exception as e:
+            #         logger.exception(e)
+            #     break
+    else:
+        await auto_filter(client, message)
 
 
-@Client.on_message(filters.command('leave') & filters.user(ADMINS))
-async def leave_a_chat(bot, message):
-    if len(message.command) == 1:
-        return await message.reply('Give me a chat id')
-    chat = message.command[1]
+@Client.on_callback_query(filters.regex(r"^next"))
+async def next_page(bot, query):
+    ident, req, key, offset = query.data.split("_")
+    ad_user = query.from_user.id
+    if int(ad_user) in ADMINS:
+        pass
+    elif int(req) not in [query.from_user.id, 0]:
+        return await query.answer(
+            "കാര്യമൊക്കെ കൊള്ളാം, പക്ഷേ, ഇത്‌ നിങ്ങളുടേതല്ല.;\nNice Try! But, This Was Not Your Request, Request Yourself;",
+            show_alert=True)
     try:
-        chat = int(chat)
+        offset = int(offset)
     except:
-        chat = chat
+        offset = 0
+    search = BUTTONS.get(key)
+    if not search:
+        await query.answer("You Are Using One Of My Old Messages, Please Send The Request Again.", show_alert=True)
+        return
+
+    files, n_offset, total = await get_search_results(search, offset=offset, filter=True)
     try:
-        buttons = [[
-            InlineKeyboardButton('Support', url=f'https://t.me/{SUPPORT_CHAT}')
-        ]]
-        reply_markup = InlineKeyboardMarkup(buttons)
-        await bot.send_message(
-            chat_id=chat,
-            text='<b>Hello Friends, \nMy admin has told me to leave from group so i go! If you wanna add me again contact my support group.</b>',
-            reply_markup=reply_markup,
+        n_offset = int(n_offset)
+    except:
+        n_offset = 0
+
+    if not files:
+        return
+    if SINGLE_BUTTON:
+        btn = [
+            [
+                InlineKeyboardButton(
+                    text=f"[{get_size(file.file_size)}] - 🎬 {file.file_name}", callback_data=f'files#{file.file_id}'
+                ),
+            ]
+            for file in files
+        ]
+    else:
+        btn = [
+            [
+                InlineKeyboardButton(
+                    text=f"{file.file_name}", callback_data=f'files#{file.file_id}'
+                ),
+                InlineKeyboardButton(
+                    text=f"{get_size(file.file_size)}",
+                    callback_data=f'files_#{file.file_id}',
+                ),
+            ]
+            for file in files
+        ]
+
+    if 0 < offset <= 10:
+        off_set = 0
+    elif offset == 0:
+        off_set = None
+    else:
+        off_set = offset - 10
+    if n_offset == 0:
+        btn.append(
+            [InlineKeyboardButton("⏪ BACK", callback_data=f"next_{req}_{key}_{off_set}"),
+             InlineKeyboardButton(f"📃 Pages {round(int(offset) / 10) + 1} / {round(total / 10)}",
+                                  callback_data="pages")]
+        )
+    elif off_set is None:
+        btn.append(
+            [InlineKeyboardButton(f"🗓 {round(int(offset) / 10) + 1} / {round(total / 10)}", callback_data="pages"),
+             InlineKeyboardButton("NEXT ⏩", callback_data=f"next_{req}_{key}_{n_offset}")])
+    else:
+        btn.append(
+            [
+                InlineKeyboardButton("⏪ BACK", callback_data=f"next_{req}_{key}_{off_set}"),
+                InlineKeyboardButton(f"🗓 {round(int(offset) / 10) + 1} / {round(total / 10)}", callback_data="pages"),
+                InlineKeyboardButton("NEXT ⏩", callback_data=f"next_{req}_{key}_{n_offset}")
+            ],
         )
 
-        await bot.leave_chat(chat)
-    except Exception as e:
-        await message.reply(f'Error - {e}')
+    btn.insert(0, [
+        InlineKeyboardButton("📺 sᴇʀɪᴇs 📺", url="https://t.me/TvSeriesLand4U"),
+        InlineKeyboardButton("🎬 ɴᴇᴡ ᴍᴏᴠɪᴇs 🎬", url="https://t.me/onlymovie76")
+    ])
+    try:
+        await query.edit_message_reply_markup(
+            reply_markup=InlineKeyboardMarkup(btn)
+        )
+    except MessageNotModified:
+        pass
+    await query.answer()
 
 
-@Client.on_message(filters.command('disable') & filters.user(ADMINS))
-async def disable_chat(bot, message):
-    if len(message.command) == 1:
-        return await message.reply('Give me a chat id')
-    r = message.text.split(None)
-    if len(r) > 2:
-        reason = message.text.split(None, 2)[2]
-        chat = message.text.split(None, 2)[1]
+@Client.on_callback_query(filters.regex(r"^spolling"))
+async def advantage_spoll_choker(bot, query):
+    _, user, movie_ = query.data.split('#')
+    ad_user = query.from_user.id
+    # if int(ad_user) in ADMINS:
+    #     pass
+    # elif int(user) != 0 and query.from_user.id != int(user):
+    #     return await query.answer("കാര്യമൊക്കെ കൊള്ളാം, പക്ഷേ, ഇത്‌ നിങ്ങളുടേതല്ല.;\nNice Try! But, This Was Not Your Request, Request Yourself;",
+    #                               show_alert=True)
+    if movie_ == "close_spellcheck":
+        return await query.message.delete()
+    movies = SPELL_CHECK.get(query.message.reply_to_message.message_id)
+    if not movies:
+        return await query.answer("You Are Clicking On An Old Button Which Is Expired.", show_alert=True)
+    movie = movies[(int(movie_))]
+    await query.answer('Checking For Movie In Database...')
+    files, offset, total_results = await get_search_results(movie, offset=0, filter=True)
+    if files:
+        k = (movie, files, offset, total_results)
+        await auto_filter(bot, query, k)
     else:
-        chat = message.command[1]
-        reason = "No reason Provided"
-    try:
-        chat_ = int(chat)
-    except:
-        return await message.reply('Give Me A Valid Chat ID')
-    cha_t = await db.get_chat(int(chat_))
-    if not cha_t:
-        return await message.reply("Chat Not Found In DB")
-    if cha_t['is_disabled']:
-        return await message.reply(f"This chat is already disabled:\nReason-<code> {cha_t['reason']} </code>")
-    await db.disable_chat(int(chat_), reason)
-    temp.BANNED_CHATS.append(int(chat_))
-    await message.reply('Chat Successfully Disabled')
-    try:
-        buttons = [[
-            InlineKeyboardButton('Support', url=f'https://t.me/{SUPPORT_CHAT}')
-        ]]
-        reply_markup = InlineKeyboardMarkup(buttons)
-        await bot.send_message(
-            chat_id=chat_,
-            text=f'<b>Hello Friends, \nMy admin has told me to leave from group so i go! If you wanna add me again contact my support group.</b> \nReason : <code>{reason}</code>',
-            reply_markup=reply_markup)
-        await bot.leave_chat(chat_)
-    except Exception as e:
-        await message.reply(f"Error - {e}")
+        k = await query.message.edit('This Movie Not Found In DataBase')
+        await asyncio.sleep(10)
+        await k.delete()
 
 
-@Client.on_message(filters.command('enable') & filters.user(ADMINS))
-async def re_enable_chat(bot, message):
-    if len(message.command) == 1:
-        return await message.reply('Give me a chat id')
-    chat = message.command[1]
-    try:
-        chat_ = int(chat)
-    except:
-        return await message.reply('Give Me A Valid Chat ID')
-    sts = await db.get_chat(int(chat))
-    if not sts:
-        return await message.reply("Chat Not Found In DB !")
-    if not sts.get('is_disabled'):
-        return await message.reply('This chat is not yet disabled.')
-    await db.re_enable_chat(int(chat_))
-    temp.BANNED_CHATS.remove(int(chat_))
-    await message.reply("Chat Succesfully re-enabled")
+@Client.on_callback_query()
+async def cb_handler(client: Client, query: CallbackQuery):
+    first_name = query.from_user.first_name
+    mod_match = re.match(r"help_module\((.+?)\)", query.data)
+    prev_match = re.match(r"help_prev\((.+?)\)", query.data)
+    next_match = re.match(r"help_next\((.+?)\)", query.data)
+    back_match = re.match(r"help_back", query.data)
+    help_match = re.match(r"help_", query.data)
+    close_match = re.match(r"close_btn", query.data)
 
+    if query.data == "close_data":
+        await query.message.delete()
+    elif query.data == "delallconfirm":
+        userid = query.from_user.id
+        chat_type = query.message.chat.type
 
-@Client.on_message(filters.command('stats') & filters.incoming)
-async def get_ststs(bot, message):
-    rju = await message.reply('Fetching stats..')
-    await asyncio.sleep(1)
-    total_users = await db.total_users_count()
-    totl_chats = await db.total_chat_count()
-    files = await Media.count_documents()
-    size = await db.get_db_size()
-    free = 536870912 - size
-    size = get_size(size)
-    free = get_size(free)
-    await rju.delete()
-    buttons = [
-        [
-            InlineKeyboardButton('👩‍🦯 Back', callback_data='help'),
-            InlineKeyboardButton('♻️Rᴇғʀᴇsʜ', callback_data='rfrsh')
+        if chat_type == "private":
+            grpid = await active_connection(str(userid))
+            if grpid is not None:
+                grp_id = grpid
+                try:
+                    chat = await client.get_chat(grpid)
+                    title = chat.title
+                except:
+                    await query.message.edit_text("Make Sure I'm Present In Your Group!!", quote=True)
+                    return
+            else:
+                await query.message.edit_text(
+                    "I'm Not Connected To Any Groups!\nCheck /connections Or Connect To Any Groups",
+                    quote=True
+                )
+                return
+
+        elif chat_type in ["group", "supergroup"]:
+            grp_id = query.message.chat.id
+            title = query.message.chat.title
+
+        else:
+            return
+
+        st = await client.get_chat_member(grp_id, userid)
+        if (st.status == "creator") or (str(userid) in ADMINS):
+            await del_all(query.message, grp_id, title)
+        else:
+            await query.answer("You Need To Be Group Owner Or An Auth User To Do That!", show_alert=True)
+    elif query.data == "delallcancel":
+        userid = query.from_user.id
+        chat_type = query.message.chat.type
+
+        if chat_type == "private":
+            await query.message.reply_to_message.delete()
+            await query.message.delete()
+
+        elif chat_type in ["group", "supergroup"]:
+            grp_id = query.message.chat.id
+            st = await client.get_chat_member(grp_id, userid)
+            if (st.status == "creator") or (str(userid) in ADMINS):
+                await query.message.delete()
+                try:
+                    await query.message.reply_to_message.delete()
+                except:
+                    pass
+            else:
+                await query.answer("Thats not for you!!", show_alert=True)
+    elif "groupcb" in query.data:
+        await query.answer()
+
+        group_id = query.data.split(":")[1]
+
+        act = query.data.split(":")[2]
+        hr = await client.get_chat(int(group_id))
+        title = hr.title
+        user_id = query.from_user.id
+
+        if act == "":
+            stat = "CONNECT"
+            cb = "connectcb"
+        else:
+            stat = "DISCONNECT"
+            cb = "disconnect"
+
+        keyboard = InlineKeyboardMarkup([
+            [InlineKeyboardButton(f"{stat}", callback_data=f"{cb}:{group_id}"),
+             InlineKeyboardButton("DELETE", callback_data=f"deletecb:{group_id}")],
+            [InlineKeyboardButton("BACK", callback_data="backcb")]
+        ])
+
+        await query.message.edit_text(
+            f"Group Name : **{title}**\nGroup ID : `{group_id}`",
+            reply_markup=keyboard,
+            parse_mode="md"
+        )
+        return
+    elif "connectcb" in query.data:
+        await query.answer()
+
+        group_id = query.data.split(":")[1]
+
+        hr = await client.get_chat(int(group_id))
+
+        title = hr.title
+
+        user_id = query.from_user.id
+
+        mkact = await make_active(str(user_id), str(group_id))
+
+        if mkact:
+            await query.message.edit_text(
+                f"Connected to **{title}**",
+                parse_mode="md"
+            )
+        else:
+            await query.message.edit_text('Some error occured!!', parse_mode="md")
+        return
+    elif "disconnect" in query.data:
+        await query.answer()
+
+        group_id = query.data.split(":")[1]
+
+        hr = await client.get_chat(int(group_id))
+
+        title = hr.title
+        user_id = query.from_user.id
+
+        mkinact = await make_inactive(str(user_id))
+
+        if mkinact:
+            await query.message.edit_text(
+                f"Disconnected from **{title}**",
+                parse_mode="md"
+            )
+        else:
+            await query.message.edit_text(
+                f"Some error occured!!",
+                parse_mode="md"
+            )
+        return
+    elif "deletecb" in query.data:
+        await query.answer()
+
+        user_id = query.from_user.id
+        group_id = query.data.split(":")[1]
+
+        delcon = await delete_connection(str(user_id), str(group_id))
+
+        if delcon:
+            await query.message.edit_text(
+                "Successfully deleted connection"
+            )
+        else:
+            await query.message.edit_text(
+                f"Some error occured!!",
+                parse_mode="md"
+            )
+        return
+    elif query.data == "backcb":
+        await query.answer()
+
+        userid = query.from_user.id
+
+        groupids = await all_connections(str(userid))
+        if groupids is None:
+            await query.message.edit_text(
+                "There Are No Active Connections!! Connect To Some Groups First.",
+            )
+            return
+        buttons = []
+        for groupid in groupids:
+            try:
+                ttl = await client.get_chat(int(groupid))
+                title = ttl.title
+                active = await if_active(str(userid), str(groupid))
+                act = " - ACTIVE" if active else ""
+                buttons.append(
+                    [
+                        InlineKeyboardButton(
+                            text=f"{title}{act}", callback_data=f"groupcb:{groupid}:{act}"
+                        )
+                    ]
+                )
+            except:
+                pass
+        if buttons:
+            await query.message.edit_text(
+                "Your connected group details ;\n\n",
+                reply_markup=InlineKeyboardMarkup(buttons)
+            )
+    elif "alertmessage" in query.data:
+        grp_id = query.message.chat.id
+        i = query.data.split(":")[1]
+        keyword = query.data.split(":")[2]
+        reply_text, btn, alerts, fileid = await find_filter(grp_id, keyword)
+        if alerts is not None:
+            alerts = ast.literal_eval(alerts)
+            alert = alerts[int(i)]
+            alert = alert.replace("\\n", "\n").replace("\\t", "\t")
+            await query.answer(alert, show_alert=True)
+    if query.data.startswith("file"):
+        ident, file_id = query.data.split("#")
+        files_ = await get_file_details(file_id)
+        user = query.message.reply_to_message.from_user.id
+        ad_user = query.from_user.id
+        # if int(ad_user) in ADMINS:
+        #     pass
+        # elif int(user) != 0 and query.from_user.id != int(user):
+        #     return await query.answer(
+        #         "കാര്യമൊക്കെ കൊള്ളാം, പക്ഷേ, ഇത്‌ നിങ്ങളുടേതല്ല.;\nNice Try! But, This Was Not Your Request, Request Yourself;",
+        #         show_alert=True)
+
+        if not files_:
+            return await query.answer('No such file exist.')
+        files = files_[0]
+        title = files.file_name
+        size = get_size(files.file_size)
+        f_caption = files.caption
+        if CUSTOM_FILE_CAPTION:
+            try:
+                f_caption = CUSTOM_FILE_CAPTION.format(file_name=title, file_size=size, file_caption=f_caption)
+            except Exception as e:
+                logger.exception(e)
+            f_caption = f_caption
+        if f_caption is None:
+            f_caption = f"{files.file_name}"
+        f_caption = f_caption + f"\n\n<code>┈••• @TvSeriesLand4U •••┈\n\n💾 Size: {size}</code>"
+
+        try:
+            if AUTH_CHANNEL and not await is_subscribed(client, query):
+                await query.answer(url=f"https://t.me/{temp.U_NAME}?start={file_id}")
+                return
+            elif P_TTI_SHOW_OFF:
+                await query.answer(url=f"https://t.me/{temp.U_NAME}?start={file_id}")
+                return
+            else:
+                await client.send_cached_media(
+                    chat_id=query.from_user.id,
+                    file_id=file_id,
+                    caption=f_caption,
+                    parse_mode="html",
+                    reply_markup=InlineKeyboardMarkup(
+                        [
+                            [
+                                InlineKeyboardButton(
+                                    '⭕️ ᴄᴏɴᴛᴀᴄᴛ ᴍᴇ ⭕️', url="https://t.me/TvSeriesLandAdminBot"
+                                )
+                            ]
+                        ]
+                    )
+                )
+                await query.answer('Check My PM, I Have Sent Files In Your PM', show_alert=True)
+        except UserIsBlocked:
+            await query.answer('Unblock Me Dude!', show_alert=True)
+        except PeerIdInvalid:
+            await query.answer(url=f"https://t.me/{temp.U_NAME}?start={file_id}")
+        except Exception as e:
+            await query.answer(url=f"https://t.me/{temp.U_NAME}?start={file_id}")
+    elif query.data.startswith("checksub"):
+        if AUTH_CHANNEL and not await is_subscribed(client, query):
+            await query.answer("I Like Your Smartness, But Don't Be Over Smart 😒", show_alert=True)
+            return
+        ident, file_id = query.data.split("#")
+        files_ = await get_file_details(file_id)
+        if not files_:
+            return await query.answer('No such file exist.')
+        files = files_[0]
+        title = files.file_name
+        size = get_size(files.file_size)
+        f_caption = files.caption
+        if CUSTOM_FILE_CAPTION:
+            try:
+                f_caption = CUSTOM_FILE_CAPTION.format(file_name=title, file_size=size, file_caption=f_caption)
+            except Exception as e:
+                logger.exception(e)
+                f_caption = f_caption
+        if f_caption is None:
+            f_caption = f"{title}"
+        f_caption = f_caption + f"\n\n<code>┈••• @TvSeriesLand4U •••┈\n\n💾 Size: {size}</code>"
+        await query.answer()
+        await client.send_cached_media(
+            chat_id=query.from_user.id,
+            file_id=file_id,
+            caption=f_caption,
+            parse_mode="html",
+            reply_markup=InlineKeyboardMarkup(
+                [
+                    [
+                        InlineKeyboardButton(
+                            '⭕️ ᴄᴏɴᴛᴀᴄᴛ ᴍᴇ ⭕️', url="https://t.me/TvSeriesLandAdminBot"
+                        )
+                    ]
+                ]
+            )
+        )
+    elif query.data == "pages":
+        await query.answer()
+    elif query.data == "start":
+        buttons = [
+            [
+                InlineKeyboardButton('🔍 Search', switch_inline_query_current_chat=''),
+                InlineKeyboardButton('📺 Series Updates', url='https://t.me/TvSeriesLand4U')
+            ],
+            [
+                InlineKeyboardButton('ℹ Help', callback_data='help'),
+                InlineKeyboardButton('😊 About', callback_data='about')
+            ]
         ]
-    ]
-    reply_markup = InlineKeyboardMarkup(buttons)
-    await message.reply_photo(
-        photo=random.choice(PICS),
-        caption=script.STATUS_TXT.format(files, total_users, totl_chats, size, free),
-        parse_mode='html',
-        reply_markup=reply_markup,
-        reply_to_message_id=message.message_id
-    )
-    # await rju.edit(script.STATUS_TXT.format(files, total_users, totl_chats, size, free))
+        reply_markup = InlineKeyboardMarkup(buttons)
+        await query.message.edit_text(
+            text=script.START_TXT.format(query.from_user.mention, temp.U_NAME, temp.B_NAME),
+            reply_markup=reply_markup,
+            parse_mode='html'
+        )
+    elif query.data == "help":
+        # if not keyboard:
+        keyboard = InlineKeyboardMarkup(paginate_modules(0, HELPABLE, "help"))
+        await query.message.edit_text(
+            text=script.HELP_STRINGS.format(query.from_user.mention, "@lnc3f3r"),
+            parse_mode="html",
+            reply_markup=keyboard)
+
+        # buttons = [
+        #     [
+        #         InlineKeyboardButton('Manual Filter', callback_data='manuelfilter'),
+        #         InlineKeyboardButton('Auto Filter', callback_data='autofilter')
+        #     ],
+        #     [
+        #         InlineKeyboardButton('Connection', callback_data='coct'),
+        #         InlineKeyboardButton('Extra Mods', callback_data='extra')
+        #     ],
+        #     [
+        #         InlineKeyboardButton('🏠 Home', callback_data='start'),
+        #         InlineKeyboardButton('🔮 Status', callback_data='stats')
+        #     ]
+        # ]
+        # reply_markup = InlineKeyboardMarkup(buttons)
+        # await query.message.edit_text(
+        #     text=script.HELP_TXT.format(query.from_user.mention),
+        #     reply_markup=reply_markup,
+        #     parse_mode='html'
+        # )
+    elif query.data == "about":
+        buttons = [
+            [
+                InlineKeyboardButton('📺 Series Updates', url='https://t.me/TvSeriesLand4U_Updates'),
+                InlineKeyboardButton('♥️ Source', callback_data='source')
+            ],
+            [
+                InlineKeyboardButton('🏠 Home', callback_data='start'),
+                InlineKeyboardButton('🔐 Close', callback_data='close_data')
+            ]
+        ]
+        reply_markup = InlineKeyboardMarkup(buttons)
+        await query.message.edit_text(
+            text=script.ABOUT_TXT.format(temp.B_NAME),
+            reply_markup=reply_markup,
+            parse_mode='html'
+        )
+    elif query.data == "source":
+        buttons = [
+            [
+                InlineKeyboardButton('👩‍🦯 Back', callback_data='about')
+            ]
+        ]
+        reply_markup = InlineKeyboardMarkup(buttons)
+        await query.message.edit_text(
+            text=script.SOURCE_TXT,
+            reply_markup=reply_markup,
+            parse_mode='html'
+        )
+    elif query.data == "manuelfilter":
+        buttons = [
+            [
+                InlineKeyboardButton('👩‍🦯 Back', callback_data='help'),
+                InlineKeyboardButton('⏹️ Buttons', callback_data='button')
+            ]
+        ]
+        reply_markup = InlineKeyboardMarkup(buttons)
+        await query.message.edit_text(
+            text=script.MANUELFILTER_TXT,
+            reply_markup=reply_markup,
+            parse_mode='html'
+        )
+    elif query.data == "button":
+        buttons = [
+            [
+                InlineKeyboardButton('👩‍🦯 Back', callback_data='manuelfilter')
+            ]
+        ]
+        reply_markup = InlineKeyboardMarkup(buttons)
+        await query.message.edit_text(
+            text=script.BUTTON_TXT,
+            reply_markup=reply_markup,
+            parse_mode='html'
+        )
+    elif query.data == "autofilter":
+        buttons = [
+            [
+                InlineKeyboardButton('👩‍🦯 Back', callback_data='help')
+            ]
+        ]
+        reply_markup = InlineKeyboardMarkup(buttons)
+        await query.message.edit_text(
+            text=script.AUTOFILTER_TXT,
+            reply_markup=reply_markup,
+            parse_mode='html'
+        )
+    elif query.data == "coct":
+        buttons = [
+            [
+                InlineKeyboardButton('👩‍🦯 Back', callback_data='help')
+            ]
+        ]
+        reply_markup = InlineKeyboardMarkup(buttons)
+        await query.message.edit_text(
+            text=script.CONNECTION_TXT,
+            reply_markup=reply_markup,
+            parse_mode='html'
+        )
+    elif query.data == "extra":
+        buttons = [
+            [
+                InlineKeyboardButton('👩‍🦯 Back', callback_data='help'),
+                InlineKeyboardButton('👮‍♂️ Admin', callback_data='admin')
+            ]
+        ]
+        reply_markup = InlineKeyboardMarkup(buttons)
+        await query.message.edit_text(
+            text=script.EXTRAMOD_TXT,
+            reply_markup=reply_markup,
+            parse_mode='html'
+        )
+    elif query.data == "admin":
+        buttons = [
+            [
+                InlineKeyboardButton('👩‍🦯 Back', callback_data='extra')
+            ]
+        ]
+        reply_markup = InlineKeyboardMarkup(buttons)
+        await query.message.edit_text(
+            text=script.ADMIN_TXT,
+            reply_markup=reply_markup,
+            parse_mode='html'
+        )
+    elif query.data == "stats":
+        buttons = [
+            [
+                InlineKeyboardButton('👩‍🦯 Back', callback_data='help'),
+                InlineKeyboardButton('♻️', callback_data='rfrsh')
+            ]
+        ]
+        reply_markup = InlineKeyboardMarkup(buttons)
+        total = await Media.count_documents()
+        users = await db.total_users_count()
+        chats = await db.total_chat_count()
+        monsize = await db.get_db_size()
+        free = 536870912 - monsize
+        monsize = get_size(monsize)
+        free = get_size(free)
+        await query.message.edit_text(
+            text=script.STATUS_TXT.format(total, users, chats, monsize, free),
+            reply_markup=reply_markup,
+            parse_mode='html'
+        )
+        await asyncio.sleep(5)
+        await client.request_callback_answer(query.message.chat.id, query.message.message_id, "help")
+    elif query.data == "rfrsh":
+        await query.answer("Fetching MongoDb DataBase")
+        buttons = [
+            [
+                InlineKeyboardButton('👩‍🦯 Back', callback_data='help'),
+                InlineKeyboardButton('♻️', callback_data='rfrsh')
+            ]
+        ]
+        reply_markup = InlineKeyboardMarkup(buttons)
+        total = await Media.count_documents()
+        users = await db.total_users_count()
+        chats = await db.total_chat_count()
+        monsize = await db.get_db_size()
+        free = 536870912 - monsize
+        monsize = get_size(monsize)
+        free = get_size(free)
+        await query.message.edit_text(
+            text=script.STATUS_TXT.format(total, users, chats, monsize, free),
+            reply_markup=reply_markup,
+            parse_mode='html'
+        )
+    elif query.data == "imdb":
+        i, movie = query.data.split('#')
+        imdb = await get_poster(query=movie, id=True)
+        btn = [
+            [
+                InlineKeyboardButton(
+                    text=f"{imdb.get('title')}",
+                    url=imdb['url'],
+                )
+            ]
+        ]
+        if imdb:
+            caption = IMDB_TEMPLATE.format(
+                query=imdb['title'],
+                title=imdb['title'],
+                votes=imdb['votes'],
+                aka=imdb["aka"],
+                seasons=imdb["seasons"],
+                box_office=imdb['box_office'],
+                localized_title=imdb['localized_title'],
+                kind=imdb['kind'],
+                imdb_id=imdb["imdb_id"],
+                cast=imdb["cast"],
+                runtime=imdb["runtime"],
+                countries=imdb["countries"],
+                certificates=imdb["certificates"],
+                languages=imdb["languages"],
+                director=imdb["director"],
+                writer=imdb["writer"],
+                producer=imdb["producer"],
+                composer=imdb["composer"],
+                cinematographer=imdb["cinematographer"],
+                music_team=imdb["music_team"],
+                distributors=imdb["distributors"],
+                release_date=imdb['release_date'],
+                year=imdb['year'],
+                genres=imdb['genres'],
+                poster=imdb['poster'],
+                plot=imdb['plot'],
+                rating=imdb['rating'],
+                url=imdb['url'],
+                **locals()
+            )
+        else:
+            caption = "No Results"
+        if imdb.get('poster'):
+            try:
+                await query.message.reply_photo(photo=imdb['poster'], caption=caption,
+                                                reply_markup=InlineKeyboardMarkup(btn))
+            except (MediaEmpty, PhotoInvalidDimensions, WebpageMediaEmpty):
+                pic = imdb.get('poster')
+                poster = pic.replace('.jpg', "._V1_UX360.jpg")
+                await query.message.reply_photo(photo=imdb['poster'], caption=caption,
+                                                reply_markup=InlineKeyboardMarkup(btn))
+            except Exception as e:
+                logger.exception(e)
+                await query.message.reply(caption, reply_markup=InlineKeyboardMarkup(btn),
+                                          disable_web_page_preview=False)
+            await query.message.delete()
+        else:
+            await query.message.edit(caption, reply_markup=InlineKeyboardMarkup(btn), disable_web_page_preview=False)
+        await query.answer()
 
 
-# a function for trespassing into others groups, Inspired by a Vazha
-# Not to be used , But Just to showcase his vazhatharam.
-# @Client.on_message(filters.command('invite') & filters.user(ADMINS))
-async def gen_invite(bot, message):
-    if len(message.command) == 1:
-        return await message.reply('Give me a chat id')
-    chat = message.command[1]
+
+    # ######################### MODULE HELP START #############################################################
     try:
-        chat = int(chat)
-    except:
-        return await message.reply('Give Me A Valid Chat ID')
-    try:
-        link = await bot.create_chat_invite_link(chat)
-    except ChatAdminRequired:
-        return await message.reply("Invite Link Generation Failed, Iam Not Having Sufficient Rights")
-    except Exception as e:
-        return await message.reply(f'Error {e}')
-    await message.reply(f'Here is your Invite Link {link.invite_link}')
+        if mod_match:
+            module = mod_match.group(1)
+            text = "Here is the help for the **{}** module:\n".format(HELPABLE[module].__mod_name__) \
+                   + HELPABLE[module].__help__
+            await query.message.edit_text(text=text,
+                                          parse_mode="markdown",
+                                          reply_markup=InlineKeyboardMarkup(
+                                              [[InlineKeyboardButton(text="Back", callback_data="help_back")]]))
+
+        elif prev_match:
+            curr_page = int(prev_match.group(1))
+            await query.message.edit_text(script.HELP_STRINGS.format(first_name, "@lnc3f3r"),
+                                          parse_mode="markdown",
+                                          reply_markup=InlineKeyboardMarkup(
+                                              paginate_modules(curr_page - 1, HELPABLE, "help")))
+
+        elif next_match:
+            next_page = int(next_match.group(1))
+            await query.message.edit_text(script.HELP_STRINGS.format(first_name, "@lnc3f3r"),
+                                          parse_mode="markdown",
+                                          reply_markup=InlineKeyboardMarkup(
+                                              paginate_modules(next_page + 1, HELPABLE, "help")))
+
+        elif back_match:
+            await query.message.edit_text(text=script.HELP_STRINGS.format(first_name, "@lnc3f3r"),
+                                          parse_mode="markdown",
+                                          reply_markup=InlineKeyboardMarkup(paginate_modules(0, HELPABLE, "help")))
+
+        elif help_match:
+            await query.message.edit_text(text=script.HELP_STRINGS.format(first_name, "@lnc3f3r"),
+                                          parse_mode="markdown",
+                                          reply_markup=InlineKeyboardMarkup(paginate_modules(0, HELPABLE, "help")))
+        elif close_match:
+            await query.message.edit_text(text=script.HELP_STRINGS.format(first_name, "@lnc3f3r"),
+                                          parse_mode="markdown",
+                                          reply_markup=InlineKeyboardMarkup(paginate_modules(0, HELPABLE, "help")))
+
+        # ensure no spinny white circle
+        await client.answer_callback_query(query.id)
+        # await query.message.delete()
+        # bot.delete_message(update.effective_chat.id, update.effective_message.message_id - 1)
+    except BadRequest as excp:
+        if excp.message == "Message Is Not Modified":
+            pass
+        elif excp.message == "Query_id_invalid":
+            pass
+        elif excp.message == "Message Can't Be Deleted":
+            pass
+        else:
+            logging.exception("Exception In Help Buttons. %s", str(query.data))
+
+    # ######################### MODULE HELP END #############################################################
 
 
-@Client.on_message(filters.command('ban') & filters.user(ADMINS))
-async def ban_a_user(bot, message):
-    # https://t.me/GetTGLink/4185
-    if len(message.command) == 1:
-        return await message.reply('Give me a user id / username')
-    r = message.text.split(None)
-    if len(r) > 2:
-        reason = message.text.split(None, 2)[2]
-        chat = message.text.split(None, 2)[1]
+async def check_manual_filter(group_id, keyword, message):
+    reply_text, btn, alert, fileid = await find_filter(group_id, keyword)
+
+    if reply_text:
+        reply_text = reply_text.replace("\\n", "\n").replace("\\t", "\t")
+
+    # reply_text = reply_text + "\n\n<b>Aᴜᴛᴏᴍᴀᴛɪᴄᴀʟʟʏ Dᴇʟᴇᴛᴇ Tʜɪs Rᴇϙᴜᴇsᴛ Aғᴛᴇʀ 2 Mɪɴᴜᴛᴇs</b>"
+
+    if btn is not None:
+        try:
+            if fileid == "None":
+                if btn == "[]":
+                    d_msg = await message.reply_text(reply_text, disable_web_page_preview=True)
+                    # await asyncio.sleep(120)
+                    # await message.delete()
+                    # await d_msg.delete()
+                else:
+                    button = eval(btn)
+                    d_msg = await message.reply_text(
+                        reply_text,
+                        disable_web_page_preview=True,
+                        reply_markup=InlineKeyboardMarkup(button)
+                    )
+                    # await asyncio.sleep(120)
+                    # await message.delete()
+                    # await d_msg.delete()
+            elif btn == "[]":
+                d_msg = await message.reply_cached_media(
+                    fileid,
+                    caption=reply_text or ""
+                )
+                # await asyncio.sleep(120)
+                # await message.delete()
+                # await d_msg.delete()
+            else:
+                button = eval(btn)
+                d_msg = await message.reply_cached_media(
+                    fileid,
+                    caption=reply_text or "",
+                    reply_markup=InlineKeyboardMarkup(button)
+                )
+                # await asyncio.sleep(120)
+                # await message.delete()
+                # await d_msg.delete()
+        except Exception as e:
+            logger.exception(e)
+
+
+async def auto_filter(client, msg, spoll=False):
+    if not spoll:
+        message = msg
+        if re.findall("((^\/|^,|^!|^\.|^[\U0001F600-\U000E007F]).*)", message.text):
+            return
+
+        if 2 < len(message.text) < 100:
+            search = message.text
+            files, offset, total_results = await get_search_results(search.lower(), offset=0, filter=True)
+            if not files:
+                if SPELL_CHECK_REPLY:
+                    return await advantage_spell_chok(client, msg)
+                else:
+                    Send_message = await client.send_video(
+                        chat_id=msg.chat.id,
+                        video="https://telegra.ph/file/3e9f7db0c98e6b236c2c7.mp4",
+                        caption=f"Couldn't Find This Series.Please Try Again Or Search On Our "
+                                f"<b><a href='https://t.me/TvSeriesLand4U_Updates'>Channel</a></b>. \n\n"
+                                f"ഈ സീരീസ്ന്റെ ഒറിജിനൽ പേര് ഗൂഗിളിൽ പോയി കണ്ടെത്തി അതുപോലെ ഇവിടെ കൊടുക്കുക 🥺",
+                        parse_mode="html",
+                        reply_to_message_id=msg.message_id
+                    )
+                    await asyncio.sleep(15)  # in seconds
+                    await Send_message.delete()
+                    return
+        else:
+            return
     else:
-        chat = message.command[1]
-        reason = "No reason Provided"
-    try:
-        chat = int(chat)
-    except:
-        pass
-    try:
-        k = await bot.get_users(chat)
-    except PeerIdInvalid:
-        return await message.reply("This is an invalid user, make sure ia have met him before.")
-    except IndexError:
-        return await message.reply("This might be a channel, make sure its a user.")
-    except Exception as e:
-        return await message.reply(f'Error - {e}')
+        message = msg.message.reply_to_message  # msg will be callback query
+        search, files, offset, total_results = spoll
+        keywords = await get_filters(msg.message.chat.id)
+        for keyword in reversed(sorted(keywords, key=len)):
+            pattern = r"( |^|[^\w])" + re.escape(keyword) + r"( |$|[^\w])"
+            if re.search(pattern, search, flags=re.IGNORECASE):
+                await check_manual_filter(message.chat.id, keyword, message)
+                await msg.message.delete()
+                return
+
+    if SINGLE_BUTTON:
+        btn = [
+            [
+                InlineKeyboardButton(
+                    text=f"[{get_size(file.file_size)}] - 🎬 {file.file_name}", callback_data=f'files#{file.file_id}'
+                ),
+            ]
+            for file in files
+        ]
     else:
-        jar = await db.get_ban_status(k.id)
-        if jar['is_banned']:
-            return await message.reply(f"{k.mention} is already banned\nReason: {jar['ban_reason']}")
-        await db.ban_user(k.id, reason)
-        temp.BANNED_USERS.append(k.id)
-        await message.reply(f"Succesfully banned {k.mention}")
+        btn = [
+            [
+                InlineKeyboardButton(
+                    text=f"{file.file_name}",
+                    callback_data=f'files#{file.file_id}',
+                ),
+                InlineKeyboardButton(
+                    text=f"{get_size(file.file_size)}",
+                    callback_data=f'files_#{file.file_id}',
+                ),
+            ]
+            for file in files
+        ]
 
-
-@Client.on_message(filters.command('unban') & filters.user(ADMINS))
-async def unban_a_user(bot, message):
-    if len(message.command) == 1:
-        return await message.reply('Give me a user id / username')
-    r = message.text.split(None)
-    if len(r) > 2:
-        reason = message.text.split(None, 2)[2]
-        chat = message.text.split(None, 2)[1]
+    if offset != "":
+        key = f"{message.chat.id}-{message.message_id}"
+        BUTTONS[key] = search
+        req = message.from_user.id if message.from_user else 0
+        btn.append(
+            [InlineKeyboardButton(text=f"🗓 1/{round(int(total_results) / 10)}", callback_data="pages"),
+             InlineKeyboardButton(text="NEXT ⏩", callback_data=f"next_{req}_{key}_{offset}")]
+        )
     else:
-        chat = message.command[1]
-        reason = "No reason Provided"
-    try:
-        chat = int(chat)
-    except:
-        pass
-    try:
-        k = await bot.get_users(chat)
-    except PeerIdInvalid:
-        return await message.reply("This is an invalid user, make sure ia have met him before.")
-    except IndexError:
-        return await message.reply("Thismight be a channel, make sure its a user.")
-    except Exception as e:
-        return await message.reply(f'Error - {e}')
+        btn.append(
+            [InlineKeyboardButton(text="🗓 1/1", callback_data="pages")]
+        )
+
+    btn.insert(0, [
+        InlineKeyboardButton("⭕️ MOVIES ⭕️", url="https://t.me/onlymovie76"),
+        InlineKeyboardButton("⚜ SERIES ⚜", url="https://t.me/TvSeriesLand4U")
+    ])
+    imdb = await get_poster(search, file=(files[0]).file_name) if IMDB else None
+    query_by = f"<b>ɴᴏ ᴏғ ғɪʟᴇs :</b> <code><b><i>{total_results}</i></b></code>\n" \
+               f"<b>ʏᴏᴜʀ ϙᴜᴇʀʏ :</b> <code><b><i>{search}</i></b></code>\n" \
+               f"<b>ʀᴇϙᴜᴇsᴛᴇᴅ ʙʏ :</b> <b><code>{msg.from_user.first_name}</code></b>"  # \
+    # f"<b>Aᴜᴛᴏᴍᴀᴛɪᴄᴀʟʟʏ Dᴇʟᴇᴛᴇ Tʜɪs Rᴇϙᴜᴇsᴛ Aғᴛᴇʀ 2 Mɪɴᴜᴛᴇs</b>"
+    if imdb:
+        cap = IMDB_TEMPLATE.format(
+            query=query_by,
+            title=imdb['title'],
+            votes=imdb['votes'],
+            aka=imdb["aka"],
+            seasons=imdb["seasons"],
+            box_office=imdb['box_office'],
+            localized_title=imdb['localized_title'],
+            kind=imdb['kind'],
+            imdb_id=imdb["imdb_id"],
+            cast=imdb["cast"],
+            runtime=imdb["runtime"],
+            countries=imdb["countries"],
+            certificates=imdb["certificates"],
+            languages=imdb["languages"],
+            director=imdb["director"],
+            writer=imdb["writer"],
+            producer=imdb["producer"],
+            composer=imdb["composer"],
+            cinematographer=imdb["cinematographer"],
+            music_team=imdb["music_team"],
+            distributors=imdb["distributors"],
+            release_date=imdb['release_date'],
+            year=imdb['year'],
+            genres=imdb['genres'],
+            poster=imdb['poster'],
+            plot=imdb['plot'],
+            rating=imdb['rating'],
+            url=imdb['url'],
+            chat=message.chat.title,
+            **locals()
+        )
     else:
-        jar = await db.get_ban_status(k.id)
-        if not jar['is_banned']:
-            return await message.reply(f"{k.mention} is not yet banned.")
-        await db.remove_ban(k.id)
-        temp.BANNED_USERS.remove(k.id)
-        await message.reply(f"Succesfully unbanned {k.mention}")
+        cap = query_by  # f"Here Is What I Found For Your Query {search}"
+
+    if imdb and imdb.get('poster'):
+        try:
+            d_msg = await message.reply_photo(photo=imdb.get('poster'), caption=cap,
+                                              reply_markup=InlineKeyboardMarkup(btn))
+            # await asyncio.sleep(120)
+            # await message.delete()
+            # await d_msg.delete()
+        except (MediaEmpty, PhotoInvalidDimensions, WebpageMediaEmpty):
+            pic = imdb.get('poster')
+            poster = pic.replace('.jpg', "._V1_UX360.jpg")
+            d_msg = await message.reply_photo(photo=poster, caption=cap, reply_markup=InlineKeyboardMarkup(btn))
+            # await asyncio.sleep(120)
+            # await message.delete()
+            # await d_msg.delete()
+        except Exception as e:
+            logger.exception(e)
+            # await message.reply_text(cap, reply_markup=InlineKeyboardMarkup(btn))
+            d_msg = await client.send_photo(
+                chat_id=msg.chat.id,
+                photo=random.choice(PICS),
+                caption=cap,
+                reply_markup=InlineKeyboardMarkup(btn),
+                parse_mode="html",
+                reply_to_message_id=msg.message_id)
+            # await asyncio.sleep(120)
+            # await message.delete()
+            # await d_msg.delete()
+    else:
+        # await message.reply_text(cap, reply_markup=InlineKeyboardMarkup(btn))
+        d_msg = await client.send_photo(
+            chat_id=msg.chat.id,
+            photo=random.choice(PICS),
+            caption=cap,
+            reply_markup=InlineKeyboardMarkup(btn),
+            parse_mode="html",
+            reply_to_message_id=msg.message_id)
+        # await asyncio.sleep(120)
+        # await message.delete()
+        # await d_msg.delete()
+    if spoll:
+        await msg.message.delete()
 
 
-@Client.on_message(filters.command('users') & filters.user(ADMINS))
-async def list_users(bot, message):
-    # https://t.me/GetTGLink/4184
-    raju = await message.reply('Getting List Of Users')
-    users = await db.get_all_users()
-    out = "Users Saved In DB Are:\n\n"
-    async for user in users:
-        out += f"<a href=tg://user?id={user['id']}>{user['name']}</a>"
-        if user['ban_status']['is_banned']:
-            out += '( Banned User )'
-        out += '\n'
-    try:
-        await raju.edit_text(out)
-    except MessageTooLong:
-        with open('users.txt', 'w+') as outfile:
-            outfile.write(out)
-        await message.reply_document('users.txt', caption="List Of Users")
+async def advantage_spell_chok(client, msg):
+    query = re.sub(
+        r"\b(pl(i|e)*?(s|z+|ease|se|ese|(e+)s(e)?)|((send|snd|giv(e)?|gib)(\sme)?)|movie(s)?|new|latest|br((o|u)h?)*|^h(e|a)?(l)*(o)*|mal(ayalam)?|t(h)?amil|file|that|find|und(o)*|kit(t(i|y)?)?o(w)?|thar(u)?(o)*w?|kittum(o)*|aya(k)*(um(o)*)?|full\smovie|any(one)|with\ssubtitle(s)?)",
+        "", msg.text, flags=re.IGNORECASE)  # plis contribute some common words
+    query = query.strip() + " movie"
+    g_s = await search_gagala(query)
+    g_s += await search_gagala(msg.text)
+    gs_parsed = []
+    if not g_s:
+        Send_message = await client.send_video(
+            chat_id=msg.chat.id,
+            video="https://telegra.ph/file/3e9f7db0c98e6b236c2c7.mp4",
+            caption=f"Couldn't Find This Series.Please Try Again Or Search On Our "
+                    f"<b><a href='https://t.me/TvSeriesLand4U_Updates'>Channel</a></b>. \n\n"
+                    f"ഈ സീരീസ്ന്റെ ഒറിജിനൽ പേര് ഗൂഗിളിൽ പോയി കണ്ടെത്തി അതുപോലെ ഇവിടെ കൊടുക്കുക 🥺",
+            parse_mode="html",
+            reply_to_message_id=msg.message_id
+        )
+        await asyncio.sleep(15)  # in seconds
+        await Send_message.delete()
+        # k = await msg.reply("I couldn't find any movie in that name.")
+        # await asyncio.sleep(8)
+        # await k.delete()
+        return
+    regex = re.compile(r".*(imdb|wikipedia).*", re.IGNORECASE)  # look for imdb / wiki results
+    gs = list(filter(regex.match, g_s))
+    gs_parsed = [re.sub(
+        r'\b(\-([a-zA-Z-\s])\-\simdb|(\-\s)?imdb|(\-\s)?wikipedia|\(|\)|\-|reviews|full|all|episode(s)?|film|movie|series)',
+        '', i, flags=re.IGNORECASE) for i in gs]
+    if not gs_parsed:
+        reg = re.compile(r"watch(\s[a-zA-Z0-9_\s\-\(\)]*)*\|.*",
+                         re.IGNORECASE)  # match something like Watch Niram | Amazon Prime
+        for mv in g_s:
+            match = reg.match(mv)
+            if match:
+                gs_parsed.append(match.group(1))
+    user = msg.from_user.id if msg.from_user else 0
+    movielist = []
+    gs_parsed = list(dict.fromkeys(gs_parsed))  # removing duplicates https://stackoverflow.com/a/7961425
+    if len(gs_parsed) > 3:
+        gs_parsed = gs_parsed[:3]
+    if gs_parsed:
+        for mov in gs_parsed:
+            imdb_s = await get_poster(mov.strip(), bulk=True)  # searching each keyword in imdb
+            if imdb_s:
+                movielist += [movie.get('title') for movie in imdb_s]
+    movielist += [(re.sub(r'(\-|\(|\)|_)', '', i, flags=re.IGNORECASE)).strip() for i in gs_parsed]
+    movielist = list(dict.fromkeys(movielist))  # removing duplicates
+    if not movielist:
+        Send_message = await client.send_video(
+            chat_id=msg.chat.id,
+            video="https://telegra.ph/file/3e9f7db0c98e6b236c2c7.mp4",
+            caption=f"Couldn't Find This Series.Please Try Again Or Search On Our "
+                    f"<b><a href='https://t.me/TvSeriesLand4U_Updates'>Channel</a></b>. \n\n"
+                    f"ഈ സീരീസ്ന്റെ ഒറിജിനൽ പേര് ഗൂഗിളിൽ പോയി കണ്ടെത്തി അതുപോലെ ഇവിടെ കൊടുക്കുക 🥺",
+            parse_mode="html",
+            reply_to_message_id=msg.message_id
+        )
+        await asyncio.sleep(15)  # in seconds
+        await Send_message.delete()
+        # k = await msg.reply("I Couldn't Find Anything Related To That. Check Your Spelling")
+        # await asyncio.sleep(8)
+        # await k.delete()
+        return
+    SPELL_CHECK[msg.message_id] = movielist
+    i = 1
+    pre_len = {}
+    btn = []
+    # movielist.sort(key=len)
+    for k, movie in enumerate(movielist):
+        text = movie.strip()  # args[2]
+        same = False
+        if (i % 2) == 0:
+            if len(text) > 10 or len(str(pre_len["text_len"])) > 10:
+                same = False
+            else:
+                same = True
+        else:
+            pre_len["text_len"] = len(text)
+            same = False
+
+        i += 1
+
+        btn.append([text, f"spolling#{user}#{k}", same])
+
+    btn.append(["❌ Close", f'spolling#{user}#close_spellcheck', False])
+    btn = build_keyboard(btn)
+    btn.insert(0, [
+        InlineKeyboardButton("⭕️ OTT UPDATES ⭕️", url="https://t.me/M76Links"),
+        InlineKeyboardButton("⚜ ɴᴇᴡ ᴍᴏᴠɪᴇs ⚜", url="https://t.me/onlymovie76")
+    ])
+
+    # btn = [[
+    #                InlineKeyboardButton(
+    #                    text=movie.strip(),
+    #                    callback_data=f"spolling#{user}#{k}",
+    #                )
+    #            ] for k, movie in enumerate(movielist)]
+    # btn.append([InlineKeyboardButton(text="Close", callback_data=f'spolling#{user}#close_spellcheck')])
+    # btn.insert(0, [
+    #     InlineKeyboardButton("⭕️ OTT UPDATES ⭕️", url="https://t.me/M76Links"),
+    #     InlineKeyboardButton("⚜ ɴᴇᴡ ᴍᴏᴠɪᴇs ⚜", url="https://t.me/onlymovie76")
+    # ])
+    await msg.reply("I Couldn't Find Anything Related To That\nDid You Mean Any One Of These 👇🏻?",
+                    reply_markup=InlineKeyboardMarkup(btn))
 
 
-@Client.on_message(filters.command('chats') & filters.user(ADMINS))
-async def list_chats(bot, message):
-    raju = await message.reply('Getting List Of chats')
-    chats = await db.get_all_chats()
-    out = "Chats Saved In DB Are:\n\n"
-    async for chat in chats:
-        out += f"**Title:** `{chat['title']}`\n**- ID:** `{chat['id']}`"
-        if chat['chat_status']['is_disabled']:
-            out += '( Disabled Chat )'
-        out += '\n'
-    try:
-        await raju.edit_text(out)
-    except MessageTooLong:
-        with open('chats.txt', 'w+') as outfile:
-            outfile.write(out)
-        await message.reply_document('chats.txt', caption="List Of Chats")
+def build_keyboard(buttons):
+    keyb = []
+    for btn in buttons:
+        if btn[2] and keyb:
+            keyb[-1].append(InlineKeyboardButton(btn[0], callback_data=btn[1]))
+        else:
+            keyb.append([InlineKeyboardButton(btn[0], callback_data=btn[1])])
+
+    return keyb
