@@ -27,7 +27,7 @@ async def start(client, message):
         if message.from_user.id in ADMINS:
             buttons = [
                 [
-                    InlineKeyboardButton('🤖 Updates', url='https://t.me/TeamEvamaria')
+                    InlineKeyboardButton('📺 Updates', url='https://t.me/TvSeriesLand4U_Updates')
                 ],
                 [
                     InlineKeyboardButton('ℹ️ Help', url=f"https://t.me/{temp.U_NAME}?start=help"),
@@ -49,7 +49,7 @@ async def start(client, message):
             return
         else:
             btn = [[
-                InlineKeyboardButton("⭕️ᴘᴍ ᴍᴇ ⭕️", url="https://t.me/testufsbot")
+                InlineKeyboardButton("Series Updates", url="https://t.me/TvSeriesLand_Updates")
             ]]
             message.reply("Goto My PM, Then Click Start.. Here You Are Restricted By Admins...", reply_markup=btn)
             return
@@ -60,7 +60,7 @@ async def start(client, message):
     if len(message.command) != 2:
         buttons = [[
             InlineKeyboardButton('🔍 Search', switch_inline_query_current_chat=''),
-            InlineKeyboardButton('🤖 Updates', url='https://t.me/EvaMariaUpdates')
+            InlineKeyboardButton('Series Updates', url='https://t.me/TvSeriesLand4U_Updates')
         ], [
             InlineKeyboardButton('ℹ️Help', callback_data='help'),
             InlineKeyboardButton('😊 About', callback_data='about')
@@ -99,9 +99,9 @@ async def start(client, message):
     if len(message.command) == 2 and message.command[1] in ["subscribe", "error", "okay", "help"]:
         buttons = [[
             InlineKeyboardButton('🔍 Search', switch_inline_query_current_chat=''),
-            InlineKeyboardButton('🤖 Updates', url='https://t.me/TeamEvamaria')
+            InlineKeyboardButton('📺 Updates', url='https://t.me/TvSeriesLand4U_Updates')
         ], [
-            InlineKeyboardButton('ℹ️Help', callback_data='help'),
+            InlineKeyboardButton('ℹ️ Help', callback_data='help'),
             InlineKeyboardButton('😊 About', callback_data='about')
         ]]
         reply_markup = InlineKeyboardMarkup(buttons)
@@ -127,7 +127,7 @@ async def start(client, message):
             f_caption = cap_args[i]
             if f_caption is None:
                 f_caption = ""
-            f_caption = f_caption + f"\n\n<code>┈•••✿</code> @UniversalFilmStudio <code>✿•••┈</code>"
+            f_caption = f_caption + f"\n\n<code>┈•••</code> @TvSeriesLand4U <code>•••┈</code>"
             i += 1
             try:
                 await client.send_cached_media(
@@ -139,7 +139,7 @@ async def start(client, message):
                         [
                             [
                                 InlineKeyboardButton(
-                                    '🎭 ⭕️ ᴄᴏɴᴛᴀᴄᴛ ᴍᴇ ⭕️', url="https://t.me/UFSChatBot"
+                                    '⭕️ ᴄᴏɴᴛᴀᴄᴛ ᴍᴇ ⭕️', url="https://t.me/TvSeriesLandAdminBot"
                                 )
                             ]
                         ]
@@ -149,7 +149,7 @@ async def start(client, message):
                 return await message.reply(f"{str(err)}")
             await asyncio.sleep(1)
 
-        return await message.reply(f"<b><a href='https://t.me/UniversalFilmStudio'>Thank For Using Me...</a></b>")
+        return await message.reply(f"<b><a href='https://t.me/TvSeriesLand4U_Updates'>Thank For Using Me...</a></b>")
 
     files_ = await get_file_details(file_id)
     if not files_:
@@ -166,7 +166,7 @@ async def start(client, message):
             f_caption = f_caption
     if f_caption is None:
         f_caption = f"{files.file_name}"
-    f_caption = f_caption + f"\n\n<code>┈•••✿ @UniversalFilmStudio ✿•••┈\n\n💾 Size: {size}</code>"
+    f_caption = f_caption + f"\n\n<code>┈••• @TvSeriesLand4U •••┈\n\n💾 Size: {size}</code>"
     await client.send_cached_media(
         chat_id=message.from_user.id,
         file_id=file_id,
@@ -176,7 +176,7 @@ async def start(client, message):
             [
                 [
                     InlineKeyboardButton(
-                        '🎭 ⭕️ ᴄᴏɴᴛᴀᴄᴛ ᴍᴇ ⭕️', url="https://t.me/UFSChatBot"
+                        '⭕️ ᴄᴏɴᴛᴀᴄᴛ ᴍᴇ ⭕️', url="https://t.me/TvSeriesLand4U_Updates"
                     )
                 ]
             ]
