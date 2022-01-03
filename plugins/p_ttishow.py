@@ -487,7 +487,7 @@ async def cb_handler(client: Client, query: CallbackQuery):
         buttons = [
             [
                 InlineKeyboardButton('🔍 Search', switch_inline_query_current_chat=''),
-                InlineKeyboardButton('📺 Series Updates', url='https://t.me/TvSeriesLand4U')
+                InlineKeyboardButton('📺 Series', url='https://t.me/TvSeriesLand4U')
             ],
             [
                 InlineKeyboardButton('ℹ Help', callback_data='help'),
