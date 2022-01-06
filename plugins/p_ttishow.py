@@ -178,13 +178,13 @@ async def advantage_spoll_choker(bot, query):
     if not movies:
         return await query.answer("You Are Clicking On An Old Button Which Is Expired.", show_alert=True)
     movie = movies[(int(movie_))]
-    await query.answer('Checking For Movie In Database...')
+    await query.answer('Checking For Series In Database...')
     files, offset, total_results = await get_search_results(movie, offset=0, filter=True)
     if files:
         k = (movie, files, offset, total_results)
         await auto_filter(bot, query, k)
     else:
-        k = await query.message.edit('This Movie Not Found In DataBase')
+        k = await query.message.edit('This Series Not Found In DataBase')
         await asyncio.sleep(10)
         await k.delete()
 
@@ -412,7 +412,7 @@ async def cb_handler(client: Client, query: CallbackQuery):
             f_caption = f_caption
         if f_caption is None:
             f_caption = f"{files.file_name}"
-        f_caption = f_caption + f"\n\n<code>┈••• @TvSeriesLand4U •••┈\n\n💾 Size: {size}</code>"
+        f_caption = f_caption + f"\n\n<code>┈••• @TvSeriesLand4U •••┈\n\n"
 
         try:
             if AUTH_CHANNEL and not await is_subscribed(client, query):
@@ -431,7 +431,7 @@ async def cb_handler(client: Client, query: CallbackQuery):
                         [
                             [
                                 InlineKeyboardButton(
-                                    '⭕️ ᴄᴏɴᴛᴀᴄᴛ ᴍᴇ ⭕️', url="https://t.me/TvSeriesLandAdminBot"
+                                    '📺 Join 📺', url="https://t.me/TvSeriesLand_Updates"
                                 )
                             ]
                         ]
@@ -464,7 +464,7 @@ async def cb_handler(client: Client, query: CallbackQuery):
                 f_caption = f_caption
         if f_caption is None:
             f_caption = f"{title}"
-        f_caption = f_caption + f"\n\n<code>┈••• @TvSeriesLand4U •••┈\n\n💾 Size: {size}</code>"
+        f_caption = f_caption + f"\n\n<code>┈••• @TvSeriesLand4U •••┈\n\n"
         await query.answer()
         await client.send_cached_media(
             chat_id=query.from_user.id,
@@ -475,7 +475,7 @@ async def cb_handler(client: Client, query: CallbackQuery):
                 [
                     [
                         InlineKeyboardButton(
-                            '⭕️ ᴄᴏɴᴛᴀᴄᴛ ᴍᴇ ⭕️', url="https://t.me/TvSeriesLandAdminBot"
+                            '📺 Join 📺', url="https://t.me/onlymovie76"
                         )
                     ]
                 ]
@@ -531,7 +531,7 @@ async def cb_handler(client: Client, query: CallbackQuery):
     elif query.data == "about":
         buttons = [
             [
-                InlineKeyboardButton('📺 Series Updates', url='https://t.me/TvSeriesLand4U_Updates'),
+                InlineKeyboardButton('📺 Updates', url='https://t.me/TvSeriesLand4U_Updates'),
                 InlineKeyboardButton('♥️ Source', callback_data='source')
             ],
             [
