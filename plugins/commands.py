@@ -60,7 +60,7 @@ async def start(client, message):
     if len(message.command) != 2:
         buttons = [[
             InlineKeyboardButton('🔍 Search', switch_inline_query_current_chat=''),
-            InlineKeyboardButton('Series Updates', url='https://t.me/TvSeriesLand4U_Updates')
+            InlineKeyboardButton('📺 Updates', url='https://t.me/TvSeriesLand4U_Updates')
         ], [
             InlineKeyboardButton('ℹ️Help', callback_data='help'),
             InlineKeyboardButton('😊 About', callback_data='about')
@@ -139,7 +139,7 @@ async def start(client, message):
                         [
                             [
                                 InlineKeyboardButton(
-                                    '⭕️ ᴄᴏɴᴛᴀᴄᴛ ᴍᴇ ⭕️', url="https://t.me/TvSeriesLandAdminBot"
+                                    '📺 JOIN 📺', url="https://t.me/TvSeriesLand_Updates"
                                 )
                             ]
                         ]
@@ -166,7 +166,7 @@ async def start(client, message):
             f_caption = f_caption
     if f_caption is None:
         f_caption = f"{files.file_name}"
-    f_caption = f_caption + f"\n\n<code>┈••• @TvSeriesLand4U •••┈\n\n💾 Size: {size}</code>"
+    f_caption = f_caption + f"\n\n<code>┈••• @TvSeriesLand4U •••┈\n\n"
     await client.send_cached_media(
         chat_id=message.from_user.id,
         file_id=file_id,
@@ -176,7 +176,7 @@ async def start(client, message):
             [
                 [
                     InlineKeyboardButton(
-                        '⭕️ ᴄᴏɴᴛᴀᴄᴛ ᴍᴇ ⭕️', url="https://t.me/TvSeriesLand4U_Updates"
+                        '📺 JOIN 📺', url="https://t.me/TvSeriesLand4U_Updates"
                     )
                 ]
             ]
