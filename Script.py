@@ -2,7 +2,7 @@ class script(object):
     START_TXT = """𝙷𝙴𝙻𝙾 {},
 𝙼𝚈 𝙽𝙰𝙼𝙴 𝙸𝚂 <a href=https://t.me/{}>{}</a>, 𝗜 𝗖𝗮𝗻 𝗣𝗿𝗼𝘃𝗶𝗱𝗲 𝗠𝗼𝘃𝗶𝗲𝘀"""
     HELP_STRINGS = """
-Hey Dear <b>{}</b>! My name is <b>𝗩𝗮𝘃𝗮</b>. I Am A Group 𝗠𝗼𝘃𝗶𝗲 Bot!
+Hey Dear <b>{}</b>! My name is <b>𝗔𝗹𝗮𝘀𝗸𝗮</b>. I Am A Group 𝗠𝗼𝘃𝗶𝗲 Bot!
 I Have Lots Of Handy Features, 
 
 <b>Helpful commands</b>:
@@ -33,7 +33,7 @@ All commands can be used with the following: /
 - Filter is the feature were users can set automated replies for a particular keyword and UFS #V3.0 will respond whenever a keyword is found the message
 
 <b>NOTE:</b>
-1. 𝘃𝗮𝘃𝗮 should have admin privilege.
+1. 𝗔𝗹𝗮𝘀𝗸𝗮 should have admin privilege.
 2. only admins can add filters in a chat.
 3. alert buttons have a limit of 64 characters.
 
@@ -44,7 +44,7 @@ All commands can be used with the following: /
 • /delall - <code>delete the whole filters in a chat (chat owner only)</code>"""
     BUTTON_TXT = """Help: <b>Buttons</b>
 
-- 𝗩𝗮𝘃𝗮 Supports both url and alert inline buttons.
+- 𝗔𝗹𝗮𝘀𝗸𝗮 Supports both url and alert inline buttons.
 
 <b>NOTE:</b>
 1. Telegram will not allows you to send buttons without any content, so content is mandatory.
