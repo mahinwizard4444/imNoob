@@ -859,7 +859,7 @@ async def auto_filter(client, msg, spoll=False):
                     Send_message = await client.send_video(
                         chat_id=msg.chat.id,
                         video="https://telegra.ph/file/1fbdc1703b58c5c0ed242.mp4",
-                        caption=f"Couldn't Find This Series.Please Try Again Or Search On Our "
+                        caption=f"Couldn't Find This Movie.Please Try Again Or Search On Our "
                                 f"<b><a href='https://t.me/TvSeriesLand4U_Updates'>Channel</a></b>. \n\n"
                                 f"ഈ സിനിമയുടെ ഒറിജിനൽ പേര് ഗൂഗിളിൽ പോയി കണ്ടെത്തി അതുപോലെ ഇവിടെ കൊടുക്കുക 🥺",
                         parse_mode="html",
@@ -1018,8 +1018,8 @@ async def advantage_spell_chok(client, msg):
         Send_message = await client.send_video(
             chat_id=msg.chat.id,
             video="https://telegra.ph/file/1fbdc1703b58c5c0ed242.mp4",
-            caption=f"Couldn't Find This Series.Please Try Again Or Search On Our "
-                    f"<b><a href='https://t.me/TvSeriesLand4U_Updates'>Channel</a></b>. \n\n"
+            caption=f"Couldn't Find This Movie.Please Try Again Or Search On Our "
+                    f"<b><a href='https://t.me/M76Links'>Channel</a></b>. \n\n"
                     f"ഈ സിനിമയുടെ ഒറിജിനൽ പേര് ഗൂഗിളിൽ പോയി കണ്ടെത്തി അതുപോലെ ഇവിടെ കൊടുക്കുക 🥺",
             parse_mode="html",
             reply_to_message_id=msg.message_id
@@ -1058,8 +1058,8 @@ async def advantage_spell_chok(client, msg):
         Send_message = await client.send_video(
             chat_id=msg.chat.id,
             video="https://telegra.ph/file/1fbdc1703b58c5c0ed242.mp4",
-            caption=f"Couldn't Find This Series.Please Try Again Or Search On Our "
-                    f"<b><a href='https://t.me/TvSeriesLand4U_Updates'>Channel</a></b>. \n\n"
+            caption=f"Couldn't Find This Movie.Please Try Again Or Search On Our "
+                    f"<b><a href='https://t.me/M76Links'>Channel</a></b>. \n\n"
                     f"ഈ സിനിമയുടെ ഒറിജിനൽ പേര് ഗൂഗിളിൽ പോയി കണ്ടെത്തി അതുപോലെ ഇവിടെ കൊടുക്കുക 🥺",
             parse_mode="html",
             reply_to_message_id=msg.message_id
