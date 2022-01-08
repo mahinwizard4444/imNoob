@@ -178,7 +178,7 @@ async def advantage_spoll_choker(bot, query):
     if not movies:
         return await query.answer("You Are Clicking On An Old Button Which Is Expired.", show_alert=True)
     movie = movies[(int(movie_))]
-    await query.answer('Checking For Series In Database...')
+    await query.answer('Checking For Movie In Database...')
     files, offset, total_results = await get_search_results(movie, offset=0, filter=True)
     if files:
         k = (movie, files, offset, total_results)
@@ -412,7 +412,7 @@ async def cb_handler(client: Client, query: CallbackQuery):
             f_caption = f_caption
         if f_caption is None:
             f_caption = f"{files.file_name}"
-        f_caption = f_caption + f"\n\n<code>┈••• @TvSeriesLand4U •••┈\n\n💾 Size: {size}</code>"
+        f_caption = f_caption + f"\n\n<code>┈••• @M76Links •••┈\n\n💾 Size: {size}</code>"
 
         try:
             if AUTH_CHANNEL and not await is_subscribed(client, query):
@@ -464,7 +464,7 @@ async def cb_handler(client: Client, query: CallbackQuery):
                 f_caption = f_caption
         if f_caption is None:
             f_caption = f"{title}"
-        f_caption = f_caption + f"\n\n<code>┈••• @TvSeriesLand4U •••┈\n\n💾 Size: {size}</code>"
+        f_caption = f_caption + f"\n\n<code>┈••• @M76Links •••┈\n\n💾 Size: {size}</code>"
         await query.answer()
         await client.send_cached_media(
             chat_id=query.from_user.id,
