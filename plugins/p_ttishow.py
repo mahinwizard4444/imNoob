@@ -178,7 +178,7 @@ async def advantage_spoll_choker(bot, query):
     if not movies:
         return await query.answer("You Are Clicking On An Old Button Which Is Expired.", show_alert=True)
     movie = movies[(int(movie_))]
-    await query.answer('Checking For Series In Database...')
+    await query.answer('Checking For Movies In Database...')
     files, offset, total_results = await get_search_results(movie, offset=0, filter=True)
     if files:
         k = (movie, files, offset, total_results)
